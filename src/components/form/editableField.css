@@ -1,0 +1,36 @@
+.view,
+.edit {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	/* width: 100%; */
+}
+
+.view > div,
+.edit > div {
+	flex-grow: 1;
+}
+
+@media only screen and (max-width: 900px) {
+	.view,
+	.edit {
+		flex-direction: column;
+	}
+	.view > div,
+	.edit > div {
+		width: 100%;
+	}
+}
+
+.edit-button {
+	opacity: 0;
+	transition: all 200ms;
+}
+
+.reveal-edit-button {
+	opacity: 1;
+}
+
+.hide {
+	display: none !important;
+}

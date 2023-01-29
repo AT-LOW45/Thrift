@@ -1,29 +1,39 @@
+import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
 import MenuIcon from "@mui/icons-material/Menu";
-import { AppBar, IconButton, Toolbar, Typography } from "@mui/material";
-import { NavProps } from "./DashboardLayout";
+import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
+import { AppBar, Box, IconButton, styled, SxProps, Toolbar, Typography } from "@mui/material";
+import { useContext } from "react";
+import DrawerContext from "./DrawerContext";
 
-const TopNav = ({ drawerWidth, handleDrawerToggle, mobileOpen }: NavProps) => {
+const TopNav = () => {
+	const CustomAppBar = styled(AppBar)(({ theme }) => ({
+		backgroundColor: "rgba(255, 255, 255, 0.3)",
+		backdropFilter: "blur(2px)",
+		[theme.breakpoints.up("sm")]: {
+			width: `calc(100% - 240px)`,
+			marginLeft: `240px`,
+		} satisfies SxProps,
+		boxShadow: "none",
+		borderBottom: "1px solid lightgray",
+	}));
 
-	// reference
-	// const CustomAppBar = styled(AppBar)(({theme}) => ({
-	// 	backgroundColor: "white",
-	// 	"&::before": {
-	// 		filter: "blur(8px)"
-	// 	} satisfies SxProps
-	// }))
+	const TopNavButton = styled(IconButton)(() => ({
+		borderRadius: "10px",
+		backgroundColor: "white",
+		border: "1px solid lightgray",
+		marginLeft: "5px",
+		"&:hover": {
+			backgroundColor: "#f0f0f0",
+		},
+	}));
+
+	const { handleDrawerToggle } = useContext(DrawerContext);
 
 	return (
-		<AppBar
-			sx={{
-				width: { sm: `calc(100% - ${drawerWidth}px)` },
-				ml: { sm: `${drawerWidth}px` },
-				backdropFilter: "blur(5px)",
-			}}
-			color='transparent'
-		>
+		<CustomAppBar>
 			<Toolbar>
 				<IconButton
-					color='inherit'
+					color='default'
 					aria-label='open drawer'
 					edge='start'
 					onClick={handleDrawerToggle}
@@ -31,17 +41,19 @@ const TopNav = ({ drawerWidth, handleDrawerToggle, mobileOpen }: NavProps) => {
 				>
 					<MenuIcon />
 				</IconButton>
-				<Typography
-					variant='h6'
-					noWrap
-					component='div'
-					color='black'
-					sx={{ zIndex: "1200" }}
-				>
-					Responsive drawer
-				</Typography>
+				<Box sx={{ ml: "auto" }}>
+					<TopNavButton
+						disableRipple
+						color='primary'
+					>
+						<NotificationsNoneOutlinedIcon />
+					</TopNavButton>
+					<TopNavButton disableRipple color='secondary'>
+						<AccountCircleOutlinedIcon />
+					</TopNavButton>
+				</Box>
 			</Toolbar>
-		</AppBar>
+		</CustomAppBar>
 	);
 };
 

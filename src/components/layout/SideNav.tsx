@@ -1,45 +1,67 @@
-import MailIcon from "@mui/icons-material/Mail";
-import InboxIcon from "@mui/icons-material/MoveToInbox";
+import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
+import AnalyticsIcon from "@mui/icons-material/Analytics";
+import CompareArrowsIcon from "@mui/icons-material/CompareArrows";
+import ContentPasteIcon from "@mui/icons-material/ContentPaste";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import Diversity3Icon from "@mui/icons-material/Diversity3";
+import PeopleIcon from "@mui/icons-material/People";
+import { ListItemIcon, ListItemText } from "@mui/material";
 import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
 import Drawer from "@mui/material/Drawer";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
-import ListItemIcon from "@mui/material/ListItemIcon";
-import ListItemText from "@mui/material/ListItemText";
-import { NavProps } from "./DashboardLayout";
+import { useContext } from "react";
+import { NavLink, useLocation } from "react-router-dom";
+import DrawerContext from "./DrawerContext";
+import theme from "../../assets/theme";
 
-export default function ResponsiveDrawer({
-	drawerWidth,
-	handleDrawerToggle,
-	mobileOpen,
-}: NavProps) {
+const ResponsiveDrawer = () => {
+	const location = useLocation();
+	const { handleDrawerToggle, mobileOpen } = useContext(DrawerContext);
+
+	const navOptions = [
+		{ text: "Overview", link: "/overview", icon: DashboardIcon },
+		{ text: "Budgets", link: "/budgets", icon: AnalyticsIcon },
+		{ text: "Transactions", link: "/transactions", icon: CompareArrowsIcon },
+		{ text: "Accounts and Payment Details", link: "accounts", icon: AccountBalanceIcon },
+		{ text: "Community", link: "/community", icon: Diversity3Icon },
+		{ text: "Performance", link: "/performance", icon: ContentPasteIcon },
+		{ text: "Group Planning", link: "/group-planning", icon: PeopleIcon },
+	] as const;
+
 	const drawer = (
 		<div>
 			<Divider />
 			<List>
-				{["Inbox", "Starred", "Send email", "Drafts"].map((text, index) => (
-					<ListItem key={text} disablePadding>
-						<ListItemButton>
-							<ListItemIcon>
-								{index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-							</ListItemIcon>
-							<ListItemText primary={text} />
-						</ListItemButton>
-					</ListItem>
-				))}
-			</List>
-			<Divider />
-			<List>
-				{["All mail", "Trash", "Spam"].map((text, index) => (
-					<ListItem key={text} disablePadding>
-						<ListItemButton>
-							<ListItemIcon>
-								{index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-							</ListItemIcon>
-							<ListItemText primary={text} />
-						</ListItemButton>
+				{navOptions.map((option) => (
+					<ListItem key={option.text} disablePadding>
+						<NavLink
+							to={option.link}
+							style={({ isActive }) => {
+								return isActive
+									? {
+											color: theme.palette.tertiary.main,
+											textDecoration: "none",
+											width: "100%",
+									  }
+									: { color: "black", textDecoration: "none", width: "100%" };
+							}}
+						>
+							<ListItemButton>
+								<ListItemIcon>
+									<option.icon
+										sx={
+											location.pathname === option.link
+												? { color: "tertiary.main" }
+												: {}
+										}
+									/>
+								</ListItemIcon>
+								<ListItemText primary={option.text} />
+							</ListItemButton>
+						</NavLink>
 					</ListItem>
 				))}
 			</List>
@@ -49,7 +71,7 @@ export default function ResponsiveDrawer({
 	return (
 		<Box
 			component='nav'
-			sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
+			sx={{ width: { sm: 240 }, flexShrink: { sm: 0 } }}
 			aria-label='mailbox folders'
 		>
 			<Drawer
@@ -61,7 +83,7 @@ export default function ResponsiveDrawer({
 				}}
 				sx={{
 					display: { xs: "block", sm: "none" },
-					"& .MuiDrawer-paper": { boxSizing: "border-box", width: drawerWidth },
+					"& .MuiDrawer-paper": { boxSizing: "border-box", width: 240 },
 				}}
 			>
 				{drawer}
@@ -70,7 +92,7 @@ export default function ResponsiveDrawer({
 				variant='permanent'
 				sx={{
 					display: { xs: "none", sm: "block" },
-					"& .MuiDrawer-paper": { boxSizing: "border-box", width: drawerWidth },
+					"& .MuiDrawer-paper": { boxSizing: "border-box", width: 240 },
 				}}
 				open
 			>
@@ -78,4 +100,6 @@ export default function ResponsiveDrawer({
 			</Drawer>
 		</Box>
 	);
-}
+};
+
+export default ResponsiveDrawer;
