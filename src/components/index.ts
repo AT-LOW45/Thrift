@@ -3,3 +3,4 @@ export { default as PlainLayout } from "./layout/PlainLayout";
 export { default as Tray } from "./Tray";
 export { default as ProgressBar } from "./ProgressBar";
 export { default as TabPanel } from "./TabPanel";
+export {default as editStateMachine} from "./form/editable/editableStateMachine"

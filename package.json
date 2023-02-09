@@ -10,9 +10,10 @@
 	},
 	"eslintConfig": {
 		"extends": [
-			"plugin:react-hooks/recommended",
-			"react-app",
-			"react-app/jest"
+			"plugin:react-hooks/recommended"
+		],
+		"plugins": [
+			"react-hooks"
 		],
 		"rules": {
 			"react-hooks/rules-of-hooks": "error",
@@ -20,6 +21,7 @@
 		}
 	},
 	"dependencies": {
+		"@date-io/dayjs": "^2.16.0",
 		"@emotion/react": "^11.10.5",
 		"@emotion/styled": "^11.10.5",
 		"@mui/icons-material": "^5.11.0",
@@ -28,6 +30,7 @@
 		"@mui/x-date-pickers": "^5.0.15",
 		"@xstate/react": "^3.0.2",
 		"chart.js": "^4.2.0",
+		"dayjs": "^1.11.7",
 		"firebase": "^9.16.0",
 		"react": "^18.2.0",
 		"react-chartjs-2": "^5.2.0",

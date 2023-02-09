@@ -8,8 +8,6 @@ type ProgressBarProps = { fillType: monotone | gradient };
 const ProgressBar = ({ fillType }: ProgressBarProps) => {
 	const progressFillRef = useRef<HTMLDivElement>(null);
 
-	console.log("hey");
-
 	useEffect(() => {
 		if (progressFillRef !== null) {
 			setTimeout(() => {

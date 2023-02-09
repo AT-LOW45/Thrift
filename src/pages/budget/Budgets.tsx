@@ -1,22 +1,22 @@
 import AddIcon from "@mui/icons-material/Add";
-import Timeline from "@mui/lab/Timeline";
-import TimelineConnector from "@mui/lab/TimelineConnector";
-import TimelineContent from "@mui/lab/TimelineContent";
-import TimelineItem from "@mui/lab/TimelineItem";
-import TimelineSeparator from "@mui/lab/TimelineSeparator";
 import { Box, Button, Stack, styled, SxProps, Typography } from "@mui/material";
 import Grid2 from "@mui/material/Unstable_Grid2";
 import { ArcElement, Chart as ChartJS, Legend, Tooltip } from "chart.js";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Doughnut } from "react-chartjs-2";
 import { Tray } from "../../components";
-import { BudgetChip } from "../../features/budget";
-import { ChipOptions } from "../../features/budget/components/BudgetChip";
+import { MultiStep } from "../../context/MultiStepContext";
+import BudgetPlanCreationModal from "../../features/budget/components/BudgetPlanCreationModal";
 import BudgetPlanTray from "../../features/budget/components/BudgetPlanTray";
+import BudgetTimeline from "../../features/budget/components/BudgetTimeline";
+import Second from "../../features/budget/components/budget_plan_creation/BudgetSetup";
+import PlanOverview from "../../features/budget/components/budget_plan_creation/PlanOverview";
+import Threshold from "../../features/budget/components/budget_plan_creation/Threshold";
 import { doughnutData } from "./mock_chart_data";
 
 const Budgets = () => {
 	const toolbarPlaceholderRef = useRef<HTMLDivElement>(null);
+	const [modalOpen, setModalOpen] = useState(false);
 
 	useEffect(() => {
 		const scrollEvent = () => {
@@ -31,6 +31,10 @@ const Budgets = () => {
 		window.addEventListener("scroll", scrollEvent);
 		return () => window.removeEventListener("scroll", scrollEvent);
 	}, []);
+
+	const toggleModal = () => {
+		setModalOpen((open) => !open);
+	};
 
 	const BudgetOverviewGrid = styled(Grid2)(({ theme }) => ({
 		overflowY: "auto",
@@ -52,12 +56,6 @@ const Budgets = () => {
 
 	ChartJS.register(ArcElement, Tooltip, Legend);
 
-	const mockTimeLineData: { amount: number; date: string; budget: ChipOptions }[] = [
-		{ amount: 50, date: "xx/xx/xx", budget: "entertainment" },
-		{ amount: 30, date: "xx/xx/xx", budget: "groceries" },
-		{ amount: 90, date: "xx/xx/xx", budget: "entertainment" },
-	];
-
 	return (
 		<Box sx={{ pt: 2, px: 3 }}>
 			<Stack direction='column' spacing={1}>
@@ -67,6 +65,7 @@ const Budgets = () => {
 					color='primary'
 					sx={{ width: "fit-content" }}
 					endIcon={<AddIcon />}
+					onClick={toggleModal}
 				>
 					Add New Budget Plan
 				</Button>
@@ -100,36 +99,34 @@ const Budgets = () => {
 
 						{/* timeline */}
 						<Tray title='Recently Accessed Budgets' transparent>
-							<Timeline position='alternate'>
-								{mockTimeLineData.map((data, index, array) => (
-									<TimelineItem key={index}>
-										<TimelineSeparator>
-											<TimelineConnector />
-											<BudgetChip option={data.budget} />
-											<TimelineConnector
-												sx={
-													index === array.length - 1
-														? {
-																border: "1.6px gray dashed",
-																backgroundColor: "inherit",
-														  }
-														: {}
-												}
-											/>
-										</TimelineSeparator>
-										<TimelineContent sx={{ py: "30px", px: 2 }}>
-											<Typography variant='h6' component='span'>
-												RM {data.amount}
-											</Typography>
-											<Typography>{data.date}</Typography>
-										</TimelineContent>
-									</TimelineItem>
-								))}
-							</Timeline>
+							<BudgetTimeline />
 						</Tray>
 					</Stack>
 				</BudgetOverviewGrid>
 			</Grid2>
+			<MultiStep
+				defaultValues={{
+					id: "1",
+					name: "budget plan",
+					categories: [
+						{
+							name: "entertainment",
+							spendingLimit: 12,
+							id: "",
+							colourScheme: { primaryHue: "", secondaryHue: "" },
+							iconType: "entertainment",
+						},
+					],
+					note: "",
+					plannedPayments: [{ amount: 12, startDate: new Date(), name: "", id: "" }],
+					renewalTerm: "monthly",
+					spendingLimit: 12,
+					spendingThreshold: 80,
+				}}
+				steps={[<PlanOverview key={1} />, <Second key={2} />, <Threshold key={3} />]}
+			>
+				<BudgetPlanCreationModal open={modalOpen} toggleModal={toggleModal} />
+			</MultiStep>
 		</Box>
 	);
 };

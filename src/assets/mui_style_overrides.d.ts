@@ -44,3 +44,11 @@ declare module "@mui/material/Button" {
 		tertiary: true;
 	}
 }
+
+declare module "@mui/material/Slider" {
+	export interface SliderPropsColorOverrides {
+		warning: true
+	}
+}
+
+

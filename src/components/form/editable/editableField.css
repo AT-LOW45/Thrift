@@ -3,7 +3,6 @@
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	/* width: 100%; */
 }
 
 .view > div,
@@ -17,8 +16,9 @@
 		flex-direction: column;
 	}
 	.view > div,
-	.edit > div {
-		width: 100%;
+	.edit > div,
+	.editable-field {
+		width: 100% !important;
 	}
 }
 

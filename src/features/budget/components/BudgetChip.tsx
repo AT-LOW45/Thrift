@@ -36,6 +36,8 @@ const variants: ChipVariantList = {
 	},
 };
 
+export const budgetTypes = Object.keys(variants)
+
 export const chipVariantHueList = Object.fromEntries(
 	Object.entries(variants).map(([type, properties]) => {
 		const { icon, ...hues } = properties;

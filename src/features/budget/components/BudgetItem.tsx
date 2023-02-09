@@ -14,7 +14,7 @@ const BudgetItem = ({item}: BudgetItemProps) => {
 	};
 
 	return (
-		<Stack direction='row'>
+		<Stack direction='row' sx={{display: ""}}>
 			{isCategory(item) ? (
 				<BudgetChip option={item.iconType} />
 			) : (

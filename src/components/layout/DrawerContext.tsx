@@ -1,31 +1,31 @@
-import { createContext, Dispatch, ReactNode, SetStateAction, useMemo, useState } from "react";
+import { createContext, ReactNode, useMemo, useState } from "react";
 
 type Props = { children: ReactNode };
 
 type DrawerCtx = {
 	mobileOpen: boolean;
-	setMobileOpen: Dispatch<SetStateAction<boolean>>;
+	modalOpen: boolean;
+	handleModalToggle(): void
 	handleDrawerToggle(): void;
 };
 
-const defaultValue: DrawerCtx = {
-	mobileOpen: false,
-	setMobileOpen: (): void => {},
-	handleDrawerToggle: (): void => {},
-};
-
-const DrawerContext = createContext<DrawerCtx>(defaultValue);
+const DrawerContext = createContext<DrawerCtx>({} as DrawerCtx);
 
 export const DrawerContextProvider = ({ children }: Props): JSX.Element => {
 	const [mobileOpen, setMobileOpen] = useState(false);
+	const [modalOpen, setModalOpen] = useState(false)
 
 	const handleDrawerToggle = () => {
 		setMobileOpen(!mobileOpen);
 	};
 
+	const handleModalToggle = () => {
+		setModalOpen(open => !open)
+	}
+
 	const memoizedContextProps = useMemo(
-		() => ({ mobileOpen, setMobileOpen, handleDrawerToggle }),
-		[mobileOpen]
+		() => ({ mobileOpen, handleDrawerToggle, modalOpen, handleModalToggle }),
+		[mobileOpen, modalOpen]
 	);
 
 	return <DrawerContext.Provider value={memoizedContextProps}>{children}</DrawerContext.Provider>;
