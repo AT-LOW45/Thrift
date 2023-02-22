@@ -2,6 +2,8 @@ import { Button, Stack, Step, StepLabel, Stepper } from "@mui/material";
 import { Fragment } from "react";
 import FormDialog, { FormDialogProps } from "../../../components/form/FormDialog";
 import { useMultiStepContainer } from "../../../context/MultiStepContext";
+import { BudgetPlanSchemaDefaults } from "../budget.schema";
+import budgetService from "../budget.service";
 
 type BudgetPlanCreationModalProps = Pick<FormDialogProps, "open" | "toggleModal">;
 
@@ -15,14 +17,25 @@ const BudgetPlanCreationModal = ({ open, toggleModal }: BudgetPlanCreationModalP
 		isLastStep,
 		currentStepIndex,
 		isValid,
+		setFormData,
+		formData,
 	} = useMultiStepContainer();
+
+	const addNewBudgetPlan = (event: React.MouseEvent<HTMLButtonElement>) => {
+		budgetService.addDoc(formData).then((result) => {
+			if (typeof result === "string") {
+				toggleModal();
+			} else {
+				console.log("something went wrong");
+			}
+		});
+	};
 
 	return (
 		<FormDialog
 			open={open}
 			toggleModal={() => {
-				// setFormData(undefined);
-				
+				setFormData(BudgetPlanSchemaDefaults.parse({}));
 				toggleModal();
 			}}
 			actions={[
@@ -36,7 +49,7 @@ const BudgetPlanCreationModal = ({ open, toggleModal }: BudgetPlanCreationModalP
 				</Fragment>,
 				<Fragment key={3}>
 					{isLastStep && (
-						<Button disabled={isValid} type='submit'>
+						<Button disabled={isValid} type='submit' onClick={addNewBudgetPlan}>
 							Finish
 						</Button>
 					)}

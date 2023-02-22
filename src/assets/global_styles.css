@@ -11,3 +11,7 @@ body::-webkit-scrollbar-track {
 body::-webkit-scrollbar-thumb {
     background: #1A46C4;
 }
+
+.test {
+    color: rgb(230, 233, 51);
+}

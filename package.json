@@ -18,7 +18,8 @@
 		"rules": {
 			"react-hooks/rules-of-hooks": "error",
 			"react-hooks/exhaustive-deps": "error"
-		}
+		},
+		"parser": "babel-eslint"
 	},
 	"dependencies": {
 		"@date-io/dayjs": "^2.16.0",
@@ -27,6 +28,7 @@
 		"@mui/icons-material": "^5.11.0",
 		"@mui/lab": "^5.0.0-alpha.117",
 		"@mui/material": "^5.11.6",
+		"@mui/x-data-grid": "^5.17.23",
 		"@mui/x-date-pickers": "^5.0.15",
 		"@xstate/react": "^3.0.2",
 		"chart.js": "^4.2.0",
@@ -36,7 +38,8 @@
 		"react-chartjs-2": "^5.2.0",
 		"react-dom": "^18.2.0",
 		"react-router-dom": "^6.7.0",
-		"xstate": "^4.35.2"
+		"xstate": "^4.35.2",
+		"zod": "^3.20.6"
 	},
 	"devDependencies": {
 		"@faker-js/faker": "^7.6.0",

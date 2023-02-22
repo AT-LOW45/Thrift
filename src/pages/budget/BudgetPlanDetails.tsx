@@ -17,7 +17,7 @@ import { TabPanel, Tray } from "../../components";
 import { Editable } from "../../context/EditableContext";
 import BudgetCategories from "../../features/budget/components/BudgetCategories";
 import BudgetOverviewDetails from "../../features/budget/components/BudgetOverviewDetails";
-import { BudgetPlanOverview } from "../../features/budget/models";
+import { BudgetPlanOverview, CategorySchema, CategorySchemaDefaults } from "../../features/budget/budget.schema";
 import { barData, barOptions, data, options } from "./mock_chart_data";
 
 const BudgetPlanDetails = () => {
@@ -76,7 +76,7 @@ const BudgetPlanDetails = () => {
 				</Stack>
 			</TabPanel>
 			<TabPanel value={value} index={1}>
-				<Editable initialValues={{test: "test"}}>
+				<Editable initialValues={CategorySchemaDefaults.parse({})}>
 					<BudgetCategories />
 				</Editable>
 			</TabPanel>

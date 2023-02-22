@@ -3,9 +3,11 @@ import Card from "@mui/material/Card";
 import { styled } from "@mui/material/styles";
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
 
+type SpanValues = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
+
 type TrayProps = {
 	title: string;
-	colSpan?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
+	colSpan?: { xs: SpanValues; md?: SpanValues; lg?: SpanValues };
 	children: JSX.Element;
 	actions?: JSX.Element;
 	transparent?: boolean;
@@ -20,7 +22,11 @@ const Tray = ({ title, colSpan, children, actions, transparent }: TrayProps) => 
 	}));
 
 	return (
-		<Grid2 xs={colSpan === undefined ? "auto" : colSpan}>
+		<Grid2
+			xs={colSpan === undefined ? "auto" : colSpan.xs}
+			md={colSpan === undefined ? "auto" : colSpan.md}
+			lg={colSpan === undefined ? "auto" : colSpan.lg}
+		>
 			<TrayCard className='Tray'>
 				<CardContent>
 					<Typography variant='regularSubHeading'>{title}</Typography>

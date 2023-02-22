@@ -1,58 +1,80 @@
 import AddIcon from "@mui/icons-material/Add";
-import { Box, Button, Stack, styled, SxProps, Typography } from "@mui/material";
+import { Box, Button, Stack, Typography } from "@mui/material";
 import Grid2 from "@mui/material/Unstable_Grid2";
 import { ArcElement, Chart as ChartJS, Legend, Tooltip } from "chart.js";
-import { useEffect, useRef, useState } from "react";
-import { Doughnut } from "react-chartjs-2";
-import { Tray } from "../../components";
+import { collection, getDocs, getFirestore, onSnapshot, query, where } from "firebase/firestore";
+import { useEffect, useState } from "react";
 import { MultiStep } from "../../context/MultiStepContext";
+import { BudgetPlan, BudgetPlanSchema, BudgetPlanSchemaDefaults } from "../../features/budget";
 import BudgetPlanCreationModal from "../../features/budget/components/BudgetPlanCreationModal";
 import BudgetPlanTray from "../../features/budget/components/BudgetPlanTray";
-import BudgetTimeline from "../../features/budget/components/BudgetTimeline";
 import Second from "../../features/budget/components/budget_plan_creation/BudgetSetup";
 import PlanOverview from "../../features/budget/components/budget_plan_creation/PlanOverview";
 import Threshold from "../../features/budget/components/budget_plan_creation/Threshold";
-import { doughnutData } from "./mock_chart_data";
+import { Transaction } from "../../features/transaction/transaction.schema";
+import app from "../../firebaseConfig";
 
 const Budgets = () => {
-	const toolbarPlaceholderRef = useRef<HTMLDivElement>(null);
 	const [modalOpen, setModalOpen] = useState(false);
+	const [budgetPlans, setBudgetPlans] = useState<BudgetPlan[]>([]);
 
 	useEffect(() => {
-		const scrollEvent = () => {
-			if (toolbarPlaceholderRef !== null) {
-				if (window.scrollY > 200) {
-					toolbarPlaceholderRef.current!.style.height = "10vh";
-				} else {
-					toolbarPlaceholderRef.current!.style.height = "0";
-				}
-			}
+		const subscribeBudgetPlans = () => {
+			const firestore = getFirestore(app);
+			const budgetPlanRef = collection(firestore, "BudgetPlan");
+			const transactionRef = collection(firestore, "Transaction");
+
+			const budgetPlanStream = onSnapshot(budgetPlanRef, async (snapshot) => {
+				const result = snapshot.docs.map(
+					(doc) => ({ id: doc.id, ...doc.data() } as BudgetPlan)
+				);
+
+				const plans = await Promise.all(
+					result.map(async (plan) => {
+						const transactionQuery = query(
+							transactionRef,
+							where("budgetPlanId", "==", plan.id)
+						);
+						const transactions = (await getDocs(transactionQuery)).docs.map(
+							(transac) => transac.data() as Transaction
+						);
+
+						const amountToDeduct = transactions.map((transac) =>
+							"amount" in transac ? transac.amount : 0
+						);
+
+						const amountLeftCurrency =
+							plan.spendingLimit -
+							amountToDeduct.reduce((prev, cur) => prev + cur, 0);
+
+						const amountLeftPercentage = Math.round(
+							((plan.spendingLimit - amountLeftCurrency) / plan.spendingLimit) * 100
+						);
+
+						return {
+							amountLeftCurrency,
+							amountLeftPercentage,
+							...plan,
+						} as BudgetPlan;
+					})
+				);
+				setBudgetPlans(() => {
+					console.log(plans);
+					return plans;
+				});
+			});
+			return budgetPlanStream;
 		};
-		window.addEventListener("scroll", scrollEvent);
-		return () => window.removeEventListener("scroll", scrollEvent);
+		const unsub = subscribeBudgetPlans();
+
+		return () => {
+			unsub();
+		};
 	}, []);
 
 	const toggleModal = () => {
 		setModalOpen((open) => !open);
 	};
-
-	const BudgetOverviewGrid = styled(Grid2)(({ theme }) => ({
-		overflowY: "auto",
-		height: "100vh",
-		position: "sticky",
-		top: 0,
-		padding: "0.5rem",
-		display: "none",
-		[theme.breakpoints.up("lg")]: {
-			display: "flex",
-		} satisfies SxProps,
-		"&::-webkit-scrollbar": {
-			width: "0.3rem",
-		} satisfies SxProps,
-		"&::-webkit-scrollbar-thumb": {
-			background: theme.palette.tertiary.main,
-		} satisfies SxProps,
-	}));
 
 	ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -71,58 +93,13 @@ const Budgets = () => {
 				</Button>
 			</Stack>
 
-			<Grid2 container sx={{ mx: 0, mt: 3, p: 3 }}>
-				<Grid2 xs={12} md={6}>
-					<Stack direction='column' spacing={3}>
-						<BudgetPlanTray />
-						<BudgetPlanTray />
-						<BudgetPlanTray />
-						<BudgetPlanTray />
-						<BudgetPlanTray />
-					</Stack>
-				</Grid2>
-
-				{/* provide offset on large screens */}
-				<Grid2 xs={1} sx={{ display: { xs: "none", md: "flex" } }} />
-
-				<BudgetOverviewGrid container xs={5}>
-					<Box
-						sx={{ width: "100%", transition: "all 200ms ease-out", height: 0 }}
-						ref={toolbarPlaceholderRef}
-					/>
-
-					<Stack direction='column' spacing={3}>
-						{/* chart */}
-						<Tray title='Budget Breakdown'>
-							<Doughnut data={doughnutData} />
-						</Tray>
-
-						{/* timeline */}
-						<Tray title='Recently Accessed Budgets' transparent>
-							<BudgetTimeline />
-						</Tray>
-					</Stack>
-				</BudgetOverviewGrid>
+			<Grid2 container sx={{ mx: 0, mt: 3, p: 3 }} spacing={3}>
+				{budgetPlans.map((plan) => (
+					<BudgetPlanTray budgetPlan={plan} key={plan.id} />
+				))}
 			</Grid2>
 			<MultiStep
-				defaultValues={{
-					id: "1",
-					name: "budget plan",
-					categories: [
-						{
-							name: "entertainment",
-							spendingLimit: 12,
-							id: "",
-							colourScheme: { primaryHue: "", secondaryHue: "" },
-							iconType: "entertainment",
-						},
-					],
-					note: "",
-					plannedPayments: [{ amount: 12, startDate: new Date(), name: "", id: "" }],
-					renewalTerm: "monthly",
-					spendingLimit: 12,
-					spendingThreshold: 80,
-				}}
+				defaultValues={BudgetPlanSchemaDefaults.parse({})}
 				steps={[<PlanOverview key={1} />, <Second key={2} />, <Threshold key={3} />]}
 			>
 				<BudgetPlanCreationModal open={modalOpen} toggleModal={toggleModal} />

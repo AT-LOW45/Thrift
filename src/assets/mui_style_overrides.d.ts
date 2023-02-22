@@ -8,6 +8,7 @@ declare module "@mui/material/styles" {
 		regularParagraph: Omit<CSSProperties, "fontSize">;
 		regularLight: Pick<CSSProperties, "color" | "fontWeight" | "fontSize">;
 		numberHeading: CSSProperties;
+		numberParagraph: CSSProperties
 	}
 
 	export interface Palette {
@@ -21,6 +22,7 @@ declare module "@mui/material/styles" {
 		regularParagraph: Omit<CSSProperties, "fontSize">;
 		regularLight: Pick<CSSProperties, "color" | "fontWeight" | "fontSize">;
 		numberHeading: CSSProperties;
+		numberParagraph: CSSProperties;
 	}
 
 	export interface PaletteOptions {
@@ -36,6 +38,7 @@ declare module "@mui/material/Typography" {
 		regularParagraph: true;
 		regularLight: true;
 		numberHeading: true;
+		numberParagraph: true;
 	}
 }
 

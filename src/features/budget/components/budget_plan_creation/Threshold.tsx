@@ -1,19 +1,20 @@
 import { Box, DialogContentText, Slider, Typography } from "@mui/material";
-import { Fragment } from "react";
+import { Fragment, useEffect } from "react";
 import { useMultiStep } from "../../../../context/MultiStepContext";
-import { BudgetPlan } from "../../models";
+import { BudgetPlan } from "../../budget.schema";
 
 const Threshold = () => {
 	const { formData, updateContext } = useMultiStep<BudgetPlan>();
 
-	function valuetext(value: number) {
-		return `${value}°C`;
-	}
+	useEffect(() => {
+		updateContext({ key: "spendingThreshold", value: formData.spendingThreshold }, (plan) => {
+			return [plan.spendingThreshold > 0 && plan.spendingThreshold <= 100];
+		});
+	}, []);
 
 	const handleSliderChange = (event: Event, val: number | number[]) => {
-		console.log(val);
 		updateContext({ key: "spendingThreshold", value: val as number }, (plan) => {
-			return [];
+			return [plan.spendingThreshold > 0 && plan.spendingThreshold <= 100];
 		});
 	};
 
@@ -24,7 +25,6 @@ const Threshold = () => {
 				<Slider
 					sx={{ transition: "all 200ms" }}
 					aria-label='Temperature'
-					getAriaValueText={valuetext}
 					value={formData.spendingThreshold}
 					onChange={handleSliderChange}
 					valueLabelDisplay='auto'
@@ -35,7 +35,6 @@ const Threshold = () => {
 					max={100}
 				/>
 			</Box>
-
 			<DialogContentText sx={{ px: 10 }} textAlign='center'>
 				You will receive an alert if you spend beyond this threshold. We recommend a maximum
 				threshold of 80%

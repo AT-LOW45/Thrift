@@ -25,6 +25,10 @@ const theme = createTheme({
 		numberHeading: {
 			fontFamily: "Jetbrains Mono",
 			fontSize: "1.5rem"
+		},
+		numberParagraph: {
+			fontFamily: "Jetbrains Mono",
+			fontSize: "1rem"
 		}
 	},
 	palette: {

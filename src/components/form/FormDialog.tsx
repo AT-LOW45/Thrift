@@ -3,19 +3,25 @@ import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
+import { FormEvent } from "react";
 
 export type FormDialogProps = {
 	open: boolean;
 	toggleModal(): void;
-	children: JSX.Element[];
+	children: JSX.Element[] | JSX.Element;
 	actions: JSX.Element[]
 };
 
 const FormDialog = ({ open, toggleModal, children, actions }: FormDialogProps) => {
+
+	const submit = (event: FormEvent) => {
+		event.preventDefault()
+	}
+
 	return (
 		<Portal>
 			<Dialog open={open} onClose={toggleModal} fullWidth={true} maxWidth='lg'>
-				<form method='POST'>
+				<form method='POST' onSubmit={submit}>
 					<DialogTitle>Subscribe</DialogTitle>
 					<DialogContent dividers>{children}</DialogContent>
 					<DialogActions>

@@ -2,9 +2,17 @@ import { SvgIconComponent } from "@mui/icons-material";
 import FastfoodOutlinedIcon from "@mui/icons-material/FastfoodOutlined";
 import LoopOutlinedIcon from "@mui/icons-material/LoopOutlined";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
+import GroupsIcon from "@mui/icons-material/Groups";
 import { Box } from "@mui/material";
+import { z as zod } from "zod";
 
-export type ChipOptions = "groceries" | "entertainment" | "repeat";
+export const ChipOptionsSchema = zod.union([
+	zod.literal("groceries"),
+	zod.literal("entertainment"),
+	zod.literal("repeat"),
+	zod.literal("crowdfund")
+]);
+export type ChipOptions = zod.infer<typeof ChipOptionsSchema>
 type ChipVariant = {
 	primaryHue: string;
 	secondaryHue: string;
@@ -34,9 +42,14 @@ const variants: ChipVariantList = {
 		secondaryHue: "#8CE4CF",
 		icon: LoopOutlinedIcon,
 	},
+	crowdfund: {
+		primaryHue: "#1054e6",
+		secondaryHue: "#97b1e8",
+		icon: GroupsIcon,
+	},
 };
 
-export const budgetTypes = Object.keys(variants)
+export const budgetTypes = Object.keys(variants);
 
 export const chipVariantHueList = Object.fromEntries(
 	Object.entries(variants).map(([type, properties]) => {

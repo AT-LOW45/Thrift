@@ -14,7 +14,7 @@ type EditableFieldProps = {
 	children: ReactNode;
 	compact: boolean;
 };
-type Final = FC<EditableFieldProps> & {
+type EditableFieldType = FC<EditableFieldProps> & {
 	View: FC<EditableModeProps>;
 	Edit: FC<
 		EditableModeProps & {
@@ -23,7 +23,7 @@ type Final = FC<EditableFieldProps> & {
 	>;
 };
 
-const EditableField: Final = ({ children, compact }) => {
+const EditableField: EditableFieldType = ({ children, compact }) => {
 	return (
 		<div className='editable-field' style={{ width: compact ? "fit-content" : "100%" }}>
 			{children}

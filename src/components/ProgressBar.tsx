@@ -3,15 +3,15 @@ import { memo, useEffect, useRef } from "react";
 
 type monotone = string;
 type gradient = { from: string; to: string };
-type ProgressBarProps = { fillType: monotone | gradient };
+type ProgressBarProps = { fillType: monotone | gradient; fillPercentage: number | undefined };
 
-const ProgressBar = ({ fillType }: ProgressBarProps) => {
+const ProgressBar = ({ fillType, fillPercentage }: ProgressBarProps) => {
 	const progressFillRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
 		if (progressFillRef !== null) {
 			setTimeout(() => {
-				progressFillRef.current!.style.width = "50%";
+				progressFillRef.current!.style.width = `${fillPercentage}%`;
 			}, 600);
 		}
 	}, []);

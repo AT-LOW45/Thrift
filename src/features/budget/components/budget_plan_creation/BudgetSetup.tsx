@@ -10,7 +10,7 @@ import {
 	SelectChangeEvent,
 	Stack,
 	TextField,
-	Typography
+	Typography,
 } from "@mui/material";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -19,12 +19,12 @@ import dayjs from "dayjs";
 import { Fragment, useCallback, useEffect, useState } from "react";
 import { useMultiStep } from "../../../../context/MultiStepContext";
 import budgetService from "../../budget.service";
-import { BudgetPlan } from "../../models";
+import { BudgetPlan } from "../../budget.schema";
 import { budgetTypes } from "../BudgetChip";
 
 const validators = (plan: BudgetPlan) => [
 	budgetService.validateCategory(plan.categories[0]),
-	budgetService.validatePlanned(plan.plannedPayments[0]),
+	budgetService.validatePlannedPayment(plan.plannedPayments[0]),
 	budgetService.validateLimit(plan),
 ];
 
@@ -182,7 +182,7 @@ const BudgetSetup = () => {
 							disabled={enabled}
 							minDate={dayjs(new Date())}
 							label='Basic example'
-							value={formData.plannedPayments[0].startDate.toDateString()}
+							value={(formData.plannedPayments[0].startDate as Date).toDateString()}
 							onChange={handlePlannedPaymentDateChange}
 							renderInput={(params) => <TextField {...params} />}
 						/>

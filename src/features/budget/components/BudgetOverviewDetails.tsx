@@ -2,7 +2,7 @@ import { Stack, TextField, Typography } from "@mui/material";
 import { Fragment } from "react";
 import EditableField from "../../../components/form/editable/EditableField";
 import { useEditable } from "../../../context/EditableContext";
-import { BudgetPlanOverview } from "../models";
+import { BudgetPlanOverview } from "../budget.schema";
 
 const mockAllocationData = [
 	{ field: "Allocated", amount: 300, colour: "black" },
@@ -11,8 +11,8 @@ const mockAllocationData = [
 	{ field: "Remaining", amount: 100, colour: "green" },
 ];
 
-const BudgetOverviewDetails = () => {	
-	const {setFormContext, handleInputChange} = useEditable<BudgetPlanOverview>()
+const BudgetOverviewDetails = () => {
+	const { setFormContext, handleInputChange } = useEditable<BudgetPlanOverview>();
 
 	setFormContext(async (x) => {
 		console.log(x.note);

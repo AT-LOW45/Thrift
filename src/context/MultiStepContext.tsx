@@ -57,7 +57,26 @@ export const useMultiStep = <T extends object>() => {
 };
 
 export const useMultiStepContainer = () => {
-	const { back, currentStep, currentStepIndex, isFirstStep, isLastStep, isValid, next } =
-		useContext(MultiStepContext);
-	return { back, currentStep, currentStepIndex, isFirstStep, isLastStep, isValid, next };
+	const {
+		back,
+		currentStep,
+		currentStepIndex,
+		isFirstStep,
+		isLastStep,
+		isValid,
+		next,
+		formData,
+		setFormData,
+	} = useContext(MultiStepContext);
+	return {
+		back,
+		currentStep,
+		currentStepIndex,
+		isFirstStep,
+		isLastStep,
+		isValid,
+		formData,
+		next,
+		setFormData,
+	};
 };
