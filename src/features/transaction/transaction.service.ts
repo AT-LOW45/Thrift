@@ -22,7 +22,7 @@ const transactionService: TransactionServiceProvider = {
 				? TransactionSchema.safeParse(entity)
 				: IncomeSchema.safeParse(entity);
 
-		if (result.success) {
+		if (result.success === true) {
 			const transactionRef = collection(firestore, "Transaction");
 			const { labels, ...rest } = result.data;
 			const newRecordRef = await addDoc(transactionRef, {
@@ -36,7 +36,6 @@ const transactionService: TransactionServiceProvider = {
 	},
 	deleteDoc: async function (id: string): Promise<void> {},
 	validateRecordDetails: function (record: Transaction | Income) {
-
 		const result =
 			"category" in record
 				? TransactionSchema.safeParse(record)

@@ -3,9 +3,9 @@ import { ReactElement, useEffect, useState } from "react";
 
 type Conditions = (boolean | boolean[])[];
 
-const useMultiStepContext = <T extends object>(defaultVaues: T, steps: ReactElement[]) => {
+const useMultiStepContext = <T extends object>(defaultValues: T, steps: ReactElement[]) => {
 	const [currentStepIndex, setCurrentStepIndex] = useState(0);
-	const [formData, setFormData] = useState<T>(defaultVaues);
+	const [formData, setFormData] = useState<T>(defaultValues);
 	const [isValid, setIsValid] = useState(false);
 	const [conditions, setConditions] = useState<Conditions>([]);
 

@@ -1,6 +1,12 @@
-import { collection, getDocs, getFirestore, orderBy, query } from "firebase/firestore";
+import { addDoc, collection, getDocs, getFirestore, orderBy, query } from "firebase/firestore";
 import { ThriftServiceProvider } from "../../service/thrift";
-import { PaymentInfo, PersonalAccount } from "./paymentInfo.schema";
+import {
+	GroupAccountSchema,
+	PaymentInfo,
+	PaymentInfoSchema,
+	PersonalAccount,
+	PersonalAccountSchema,
+} from "./paymentInfo.schema";
 import app from "../../firebaseConfig";
 
 interface PaymentInfoServiceProvider extends ThriftServiceProvider<PaymentInfo> {
@@ -20,8 +26,20 @@ const paymentInfoService: PaymentInfoServiceProvider = {
 	find: function (id: string) {
 		throw new Error("Function not implemented.");
 	},
-	addDoc: function (entity: PaymentInfo): Promise<string | false> {
-		throw new Error("Function not implemented.");
+	addDoc: async function (entity: PaymentInfo): Promise<string | false> {
+		const result =
+			"userUid" in entity
+				? PersonalAccountSchema.safeParse(entity)
+				: GroupAccountSchema.safeParse(entity);
+
+		if (result.success === true) {
+			const paymentInfoRef = collection(firestore, "PaymentInfo");
+			const { id, ...rest } = result.data;
+			const newPaymentInfoRef = await addDoc(paymentInfoRef, rest);
+			return newPaymentInfoRef.id;
+		} else {
+			return false;
+		}
 	},
 	deleteDoc: function (id: string): Promise<void> {
 		throw new Error("Function not implemented.");
@@ -32,7 +50,7 @@ const paymentInfoService: PaymentInfoServiceProvider = {
 		const personalAccounts = (await getDocs(accountQuery)).docs.map(
 			(snapshot) => ({ id: snapshot.id, ...snapshot.data() } as PersonalAccount)
 		);
-        return personalAccounts
+		return personalAccounts;
 	},
 };
 

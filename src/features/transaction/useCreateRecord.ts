@@ -65,16 +65,16 @@ const useCreateRecord = (toggleModal: () => void) => {
 				const selectedBudget = val[0].bud;
 				setAmountLeftCategory(val[0].amount);
 				setBudgets(val);
-				return { selectedBudget };
+				return selectedBudget;
 			} else {
 				return undefined;
 			}
 		};
-		getAmount().then((amount) => {
+		getAmount().then((selectedBudget) => {
 			setRecord((record) => {
 				const updated =
 					recordType === "transaction"
-						? ({ ...record, category: amount?.selectedBudget } as Transaction)
+						? ({ ...record, category: selectedBudget } as Transaction)
 						: record;
 				const result = validateRecord(updated);
 				setIsValid(result);
@@ -154,7 +154,6 @@ const useCreateRecord = (toggleModal: () => void) => {
 
 			const type =
 				recordType === "transaction" ? (updated as Transaction) : (updated as Income);
-			// const result = transactionService.validateRecordDetails(type);
 			const result = validateRecord(type);
 			setIsValid(result);
 			return updated;

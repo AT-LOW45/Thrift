@@ -143,7 +143,7 @@ const RecrodCreationDialog = ({ open, toggleModal }: RecrodCreationDialogProps) 
 								</FormControl>
 								{(record as Transaction).category && (
 									<BudgetChip
-										option={(record as Transaction).category!}
+										option={(record as Transaction).category}
 									></BudgetChip>
 								)}
 							</Stack>
