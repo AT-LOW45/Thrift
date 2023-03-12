@@ -8,15 +8,17 @@ import {
 	TextField,
 	Typography,
 } from "@mui/material";
-import { FormEvent, Fragment, useContext } from "react";
+import { FormEvent, Fragment, useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import thriftLogo from "../assets/Thrift-logos_white.png";
 import thrift from "../assets/thrift_banner.jpg";
+import { InfoBar } from "../components";
 import { AuthContext } from "../context/AuthContext";
 
 const Login = () => {
 	const { login } = useContext(AuthContext);
 	const navigate = useNavigate();
+	const [infoBarOpen, setInfoBarOpen] = useState(false);
 
 	const verifyLogin = async (event: FormEvent) => {
 		event.preventDefault();
@@ -25,13 +27,13 @@ const Login = () => {
 		const password = (form[1] as HTMLInputElement).value;
 
 		const result = await login(email, password);
-		
+
 		if (result === true) {
 			navigate("/overview");
 		}
 
 		if (typeof result === "string") {
-			console.log(result);
+			setInfoBarOpen(true);
 		}
 	};
 
@@ -111,7 +113,7 @@ const Login = () => {
 								</Button>
 
 								<Button
-									type="button"
+									type='button'
 									variant='outlined'
 									onClick={() => navigate("/register")}
 									sx={{ width: "50%" }}
@@ -123,6 +125,12 @@ const Login = () => {
 					</CardContent>
 				</Card>
 			</LoginForm>
+			<InfoBar
+				infoBarOpen={infoBarOpen}
+				setInfoBarOpen={setInfoBarOpen}
+				message='Incorrect Credentials'
+				type='error'
+			/>
 		</Fragment>
 	);
 };

@@ -24,7 +24,7 @@ const BudgetItem = ({ item }: BudgetItemProps) => {
 		new Date((item.startDate as FirestoreTimestampObject).seconds * 1000);
 
 	return (
-		<Stack direction='row' sx={{ display: "" }}>
+		<Stack direction='row'>
 			{isCategory(item) ? <BudgetChip option={item.name} /> : <BudgetChip option='repeat' />}
 
 			<Stack direction='column' sx={{ flexGrow: 1, ml: 3 }}>

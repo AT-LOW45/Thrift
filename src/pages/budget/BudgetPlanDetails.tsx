@@ -15,9 +15,9 @@ import { useState } from "react";
 import { Bar, Line } from "react-chartjs-2";
 import { TabPanel, Tray } from "../../components";
 import { Editable } from "../../context/EditableContext";
+import { BudgetPlanOverview, CategorySchemaDefaults } from "../../features/budget/budget.schema";
 import BudgetCategories from "../../features/budget/components/BudgetCategories";
 import BudgetOverviewDetails from "../../features/budget/components/BudgetOverviewDetails";
-import { BudgetPlanOverview, CategorySchema, CategorySchemaDefaults } from "../../features/budget/budget.schema";
 import { barData, barOptions, data, options } from "./mock_chart_data";
 
 const BudgetPlanDetails = () => {

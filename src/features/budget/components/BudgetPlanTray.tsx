@@ -55,7 +55,7 @@ const BudgetPlanTray = ({ budgetPlan }: BudgetPlanTrayProps) => {
 					</Typography>
 				</Stack>
 				<Typography textAlign='end' sx={{ mt: 1 }}>
-					renews on {budgetPlan.renewalTerm}
+					renews {budgetPlan.renewalTerm}
 				</Typography>
 			</Stack>
 		</Tray>

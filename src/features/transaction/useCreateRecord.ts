@@ -1,15 +1,17 @@
 import { SelectChangeEvent } from "@mui/material";
-import { SyntheticEvent, useEffect, useState } from "react";
+import { collection, getFirestore, onSnapshot, query, where } from "firebase/firestore";
+import { SyntheticEvent, useContext, useEffect, useState } from "react";
+import { AuthContext } from "../../context/AuthContext";
+import app from "../../firebaseConfig";
 import { BudgetPlan, budgetService } from "../budget";
 import { ChipOptions } from "../budget/components/BudgetChip";
 import { PersonalAccount } from "../payment_info/paymentInfo.schema";
-import paymentInfoService from "../payment_info/paymentInfo.service";
 import {
 	Income,
 	IncomeSchemaDefaults,
 	labels,
 	Transaction,
-	TransactionSchemaDefaults,
+	TransactionSchemaDefaults
 } from "./transaction.schema";
 import transactionService from "./transaction.service";
 
@@ -24,6 +26,7 @@ const useCreateRecord = (toggleModal: () => void) => {
 	const [balance, setBalance] = useState<number>();
 	const [isValid, setIsValid] = useState(false);
 	const [budgets, setBudgets] = useState<{ bud: ChipOptions; amount: number }[]>([]);
+	const { user } = useContext(AuthContext);
 
 	const validateRecord = (record: Transaction | Income): boolean => {
 		const isRecordFieldsValid = transactionService.validateRecordDetails(record);
@@ -38,13 +41,28 @@ const useCreateRecord = (toggleModal: () => void) => {
 	useEffect(() => {
 		const getPlans = async () => {
 			const budgetPlans = await budgetService.readAll();
-			const personalAccounts = await paymentInfoService.getPersonalAccounts();
+			// const personalAccounts = await paymentInfoService.getPersonalAccounts();
 			budgetPlans.length > 0 &&
 				setRecord((record) => ({ budgetPlanName: budgetPlans[0].name, ...record }));
 			setBudgetPlans(budgetPlans);
-			setAccounts(personalAccounts);
+
+			const firestore = getFirestore(app);
+			const paymentInfoRef = collection(firestore, "PaymentInfo");
+			const paymentInfoQuery = query(paymentInfoRef, where("userUid", "==", user?.uid));
+
+			const paymentInfoStream = onSnapshot(paymentInfoQuery, (snapshot) => {
+				const result = snapshot.docs.map(
+					(doc) => ({ id: doc.id, ...doc.data() } as PersonalAccount)
+				);
+				setAccounts(result);
+			});
+			return paymentInfoStream;
 		};
-		getPlans();
+		const paymentInfoSub = getPlans();
+
+		return () => {
+			paymentInfoSub.then((unsub) => unsub());
+		};
 	}, []);
 
 	useEffect(() => {
@@ -86,6 +104,8 @@ const useCreateRecord = (toggleModal: () => void) => {
 	const changeRecordType = (event: SelectChangeEvent) => {
 		const selection = event.target.value as "income" | "transaction";
 		setRecordType(() => selection);
+		setBalance(undefined)
+		setBudgets([])
 		setRecord(
 			selection === "income"
 				? IncomeSchemaDefaults.parse({})
@@ -198,9 +218,9 @@ const useCreateRecord = (toggleModal: () => void) => {
 	};
 
 	const handleSubmit = async () => {
-		console.log(record);
 		const result = await transactionService.addDoc(record);
 		if (typeof result === "string") {
+			setRecord(TransactionSchemaDefaults.parse({}))
 			toggleModal();
 		} else {
 			console.log("transaction error");
@@ -215,9 +235,9 @@ const useCreateRecord = (toggleModal: () => void) => {
 		budgetPlans,
 		isValid,
 		availableLabels,
+		setBudgets,
 		label,
 		accounts,
-		// amountLeft,
 		amountLeftCategory,
 		handleAccountChange,
 		balance,
@@ -228,6 +248,8 @@ const useCreateRecord = (toggleModal: () => void) => {
 		handleCategoryChange,
 		testAuto,
 		testAutoFree,
+		setAmountLeftCategory,
+		setBalance,
 		handleSelectChange,
 		handleAmountOrMemoChange,
 		handleSubmit,

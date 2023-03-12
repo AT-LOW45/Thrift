@@ -1,11 +1,12 @@
 import { Fragment, useContext, useEffect, useState } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useNavigate } from "react-router-dom";
 import { DashboardLayout, PlainLayout } from "./components";
 import { AuthContext } from "./context/AuthContext";
 import { MultiStep } from "./context/MultiStepContext";
 import { NotFound, Overview } from "./pages";
 import BudgetPlanDetails from "./pages/budget/BudgetPlanDetails";
 import Budgets from "./pages/budget/Budgets";
+import Community from "./pages/community/Community";
 import Login from "./pages/Login";
 import Transactions from "./pages/records/Records";
 import AccountConfiguration from "./pages/register/AccountConfiguration";
@@ -14,28 +15,35 @@ import Register, { RegisterSchemaDefaults } from "./pages/register/Register";
 
 function App() {
 	// authenticate user before routing
-	const [isLoggedIn, setIsLoggedIn] = useState(false)
-	const {user} = useContext(AuthContext)
-
-	const test = true
+	const [isLoggedIn, setIsLoggedIn] = useState(false);
+	const { user } = useContext(AuthContext);
+	const navigate = useNavigate()
 
 	useEffect(() => {
 		const changeRoute = () => {
-			user === null ? setIsLoggedIn(false) : setIsLoggedIn(true)
-		}
-		changeRoute()
-		console.log(user)
-	}, [user])
+			if(user === null) {
+				setIsLoggedIn(false)
+				navigate("/")
+			} else {
+				setIsLoggedIn(true)
+				navigate("/overview")
+			}
+	
+			
+		};
+		changeRoute();
+	}, [user]);
 
 	return (
 		<Routes>
 			{isLoggedIn ? (
 				<Fragment>
 					<Route path='/' element={<DashboardLayout />}>
-						<Route path='/overview' element={<Overview />} />
+						<Route path="/overview" element={<Overview />} />
 						<Route path='/budgets' element={<Budgets />} />
 						<Route path='/budgets/:id' element={<BudgetPlanDetails />} />
 						<Route path='/transactions' element={<Transactions />} />
+						<Route path='/community' element={<Community />} />
 					</Route>
 					<Route path='*' element={<NotFound />} />
 				</Fragment>

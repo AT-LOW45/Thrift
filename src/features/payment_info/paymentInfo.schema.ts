@@ -6,7 +6,7 @@ export const accountTypes = ["cash", "savings account"];
 
 export const PaymentInfoSchema = zod.object({
 	id: zod.string().optional(),
-	name: zod.string().min(5),
+	name: zod.string().max(30),
 	balance: zod.number().gt(0),
 });
 

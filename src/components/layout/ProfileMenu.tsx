@@ -18,12 +18,8 @@ export default function ProfileMenu() {
 	const { logout } = useContext(AuthContext);
 
 	const open = Boolean(anchorEl);
-	const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-		setAnchorEl(event.currentTarget);
-	};
-	const handleClose = () => {
-		setAnchorEl(null);
-	};
+	const handleClick = (event: React.MouseEvent<HTMLElement>) => setAnchorEl(event.currentTarget);
+	const handleClose = () => setAnchorEl(null);
 
 	const signOut = () => logout().then(() => navigate("/"));
 

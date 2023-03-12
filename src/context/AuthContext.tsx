@@ -2,12 +2,11 @@ import {
 	createUserWithEmailAndPassword,
 	getAuth,
 	onAuthStateChanged,
-	User,
-	signOut,
 	signInWithEmailAndPassword,
+	signOut,
+	User,
 } from "firebase/auth";
-import { createContext, ReactNode, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { createContext, ReactNode, useMemo, useState } from "react";
 import { PersonalAccount } from "../features/payment_info/paymentInfo.schema";
 import paymentInfoService from "../features/payment_info/paymentInfo.service";
 import { Profile } from "../features/profile/profile.schema";
@@ -34,7 +33,7 @@ const Auth = ({ children }: AuthProps) => {
 
 	const signUpWithEmailAndPassword = async (registrationInfo: Registration) => {
 		try {
-			// create user, then add user profile and payment info(s)
+			// create user, then add user profile and payment info
 			const { email, password, interest, paymentInfo, username } = registrationInfo;
 			const userCredentials = await createUserWithEmailAndPassword(auth, email, password);
 
@@ -49,7 +48,7 @@ const Auth = ({ children }: AuthProps) => {
 					async (info) =>
 						await paymentInfoService.addDoc({
 							...info,
-							userUid: userCredentials.user.uid,
+							user: username,
 						} as PersonalAccount)
 				)
 			);
@@ -70,7 +69,6 @@ const Auth = ({ children }: AuthProps) => {
 			const userCredentials = await signInWithEmailAndPassword(auth, email, password);
 			return userCredentials ? true : false;
 		} catch (exception) {
-			console.log("unable to log in");
 			return exception instanceof Error ? exception.message : false;
 		}
 	};
@@ -83,11 +81,12 @@ const Auth = ({ children }: AuthProps) => {
 		}
 	};
 
-	return (
-		<AuthContext.Provider value={{ signUpWithEmailAndPassword, login, logout, user }}>
-			{children}
-		</AuthContext.Provider>
+	const memoizedAuthContext = useMemo(
+		() => ({ signUpWithEmailAndPassword, login, logout, user }),
+		[user]
 	);
+
+	return <AuthContext.Provider value={memoizedAuthContext}>{children}</AuthContext.Provider>;
 };
 
 export default Auth;

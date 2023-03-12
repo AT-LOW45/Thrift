@@ -1,13 +1,19 @@
 import { Button, Stack, Step, StepLabel, Stepper } from "@mui/material";
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
 import FormDialog, { FormDialogProps } from "../../../components/form/FormDialog";
 import { useMultiStepContainer } from "../../../context/MultiStepContext";
-import { BudgetPlanSchemaDefaults } from "../budget.schema";
+import { BudgetPlan, BudgetPlanSchemaDefaults } from "../budget.schema";
 import budgetService from "../budget.service";
 
-type BudgetPlanCreationModalProps = Pick<FormDialogProps, "open" | "toggleModal">;
+type BudgetPlanCreationModalProps = Pick<FormDialogProps, "open" | "toggleModal"> & {
+	plannedPaymentEnabled: boolean;
+};
 
-const BudgetPlanCreationModal = ({ open, toggleModal }: BudgetPlanCreationModalProps) => {
+const BudgetPlanCreationModal = ({
+	open,
+	toggleModal,
+	plannedPaymentEnabled,
+}: BudgetPlanCreationModalProps) => {
 	const steps = ["Budget Plan Details", "Budgets", "Threshold"];
 	const {
 		back,
@@ -21,14 +27,19 @@ const BudgetPlanCreationModal = ({ open, toggleModal }: BudgetPlanCreationModalP
 		formData,
 	} = useMultiStepContainer();
 
-	const addNewBudgetPlan = (event: React.MouseEvent<HTMLButtonElement>) => {
-		budgetService.addDoc(formData).then((result) => {
-			if (typeof result === "string") {
-				toggleModal();
-			} else {
-				console.log("something went wrong");
-			}
-		});
+	const addNewBudgetPlan = async () => {
+		console.log(formData);
+		const result = await budgetService.addDoc(
+			plannedPaymentEnabled
+				? formData
+				: ({ ...formData, plannedPayments: null } as BudgetPlan)
+		);
+
+		if (typeof result === "string") {
+			toggleModal();
+		} else {
+			console.log("something went wrong");
+		}
 	};
 
 	return (

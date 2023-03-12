@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import { memo, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 
 type monotone = string;
 type gradient = { from: string; to: string };
@@ -9,10 +9,13 @@ const ProgressBar = ({ fillType, fillPercentage }: ProgressBarProps) => {
 	const progressFillRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
-		if (progressFillRef !== null) {
-			setTimeout(() => {
-				progressFillRef.current!.style.width = `${fillPercentage}%`;
-			}, 600);
+		if (progressFillRef.current) {
+			const style = progressFillRef.current.style;
+			if (style) {
+				setTimeout(() => {
+					style.width = `${fillPercentage}%`;
+				}, 600);
+			}
 		}
 	}, []);
 
@@ -39,7 +42,6 @@ const ProgressBar = ({ fillType, fillPercentage }: ProgressBarProps) => {
 		<Box
 			sx={{
 				width: "100%",
-				// maxWidth: "700px",
 				height: "15px",
 				backgroundColor: "#ddd",
 				borderRadius: "10px",
@@ -50,22 +52,4 @@ const ProgressBar = ({ fillType, fillPercentage }: ProgressBarProps) => {
 	);
 };
 
-const areEqual = (prev: Readonly<ProgressBarProps>, cur: Readonly<ProgressBarProps>) => {
-	console.log("check?");
-
-	if (typeof prev.fillType === "string" && typeof cur.fillType === "string") {
-		return prev.fillType === cur.fillType;
-	} else if (
-		typeof prev.fillType !== "string" &&
-		"from" in prev.fillType &&
-		typeof cur.fillType !== "string" &&
-		"from" in cur.fillType
-	) {
-		return prev.fillType.from === cur.fillType.from && prev.fillType.to === cur.fillType.to;
-	} else {
-		return false;
-	}
-};
-
-const MemoizedProgressBar = memo(ProgressBar, areEqual);
-export default MemoizedProgressBar;
+export default ProgressBar;

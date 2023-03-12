@@ -1,32 +1,29 @@
 import {
 	DialogContentText,
-	FormControl, InputLabel,
+	FormControl,
+	InputLabel,
 	MenuItem,
 	Select,
 	SelectChangeEvent,
 	TextField
 } from "@mui/material";
-import React, { Fragment, useCallback } from "react";
+import React, { Fragment } from "react";
 import { useMultiStep } from "../../../../context/MultiStepContext";
 import { BudgetPlan } from "../../budget.schema";
 import budgetService from "../../budget.service";
 
 const PlanOverview = () => {
-	const { formData, updateContext, currentStepIndex } = useMultiStep<BudgetPlan>();
+	const { formData, updateContext } = useMultiStep<BudgetPlan>();
 
-	const handleChanges = useCallback(
-		(
-			event:
-				| SelectChangeEvent
-				| React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
-				| React.FocusEvent<HTMLInputElement | HTMLTextAreaElement, Element>
-		) => {
-			updateContext(event, (data) => {
-				return [budgetService.validatePlanPartial(data)];
-			});
-		},
-		[formData, currentStepIndex]
-	);
+	const handleChanges = (
+		event:
+			| SelectChangeEvent
+			| React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
+			| React.FocusEvent<HTMLInputElement | HTMLTextAreaElement, Element>
+	) =>
+		updateContext(event, (data) => {
+			return [budgetService.validatePlanPartial(data)];
+		});
 
 	const handleSpendLimit = (event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
 		const spendLimit = parseInt(event.target.value);
@@ -60,8 +57,7 @@ const PlanOverview = () => {
 				name='spendingLimit'
 				onChange={handleSpendLimit}
 				type='number'
-				
-				defaultValue={formData.spendingLimit}
+				value={isNaN(formData.spendingLimit) ? "" : formData.spendingLimit}
 				helperText='Provide a spending limit for your new budget plan'
 				variant='standard'
 				required
@@ -71,7 +67,7 @@ const PlanOverview = () => {
 				sx={{ minWidth: "50%" }}
 				id='outlined-multiline-static'
 				label='Memo'
-				name="note"
+				name='note'
 				onChange={handleChanges}
 				multiline
 				helperText='Add a short memo to describe this budget plan'

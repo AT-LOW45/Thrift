@@ -11,15 +11,17 @@ import {
 	TextField,
 	Typography,
 } from "@mui/material";
-import { Fragment } from "react";
+import { Dispatch, Fragment, SetStateAction } from "react";
 import FormDialog, { FormDialogProps } from "../../../components/form/FormDialog";
 import BudgetChip from "../../budget/components/BudgetChip";
-import { Income, incomeTypes, Transaction } from "../transaction.schema";
+import { Income, incomeTypes, Transaction, TransactionSchemaDefaults } from "../transaction.schema";
 import useCreateRecord from "../useCreateRecord";
 
-type RecrodCreationDialogProps = Pick<FormDialogProps, "open" | "toggleModal">;
+type RecordCreationDialogProps = Pick<FormDialogProps, "open" | "toggleModal"> & {
+	openInfoBar: Dispatch<SetStateAction<boolean>>;
+};
 
-const RecrodCreationDialog = ({ open, toggleModal }: RecrodCreationDialogProps) => {
+const RecordCreationDialog = ({ open, toggleModal, openInfoBar }: RecordCreationDialogProps) => {
 	const {
 		addLabel,
 		removeLabel,
@@ -41,6 +43,10 @@ const RecrodCreationDialog = ({ open, toggleModal }: RecrodCreationDialogProps) 
 		budgets,
 		isValid,
 		testAutoFree,
+		setRecord,
+		setBudgets,
+		setAmountLeftCategory,
+		setBalance,
 	} = useCreateRecord(toggleModal);
 
 	return (
@@ -51,7 +57,14 @@ const RecrodCreationDialog = ({ open, toggleModal }: RecrodCreationDialogProps) 
 				</Button>,
 			]}
 			open={open}
-			toggleModal={toggleModal}
+			toggleModal={() => {
+				setBudgets([]);
+				setAmountLeftCategory(undefined);
+				setBalance(undefined);
+				setRecord(TransactionSchemaDefaults.parse({}));
+
+				toggleModal();
+			}}
 		>
 			<Stack direction='column' spacing={2} sx={{ px: 5 }}>
 				<Stack direction='row' spacing={2} alignItems='center'>
@@ -126,7 +139,7 @@ const RecrodCreationDialog = ({ open, toggleModal }: RecrodCreationDialogProps) 
 									<Select
 										labelId='category'
 										value={
-											(record as Transaction).category
+											budgets.length !== 0
 												? (record as Transaction).category
 												: ""
 										}
@@ -134,17 +147,19 @@ const RecrodCreationDialog = ({ open, toggleModal }: RecrodCreationDialogProps) 
 										onChange={handleCategoryChange}
 										label='Category'
 									>
-										{budgets.map((b) => (
-											<MenuItem value={b.bud} key={b.bud}>
-												{b.bud}
-											</MenuItem>
-										))}
+										{budgets.length === 0 ? (
+											<MenuItem value=''></MenuItem>
+										) : (
+											budgets.map((b) => (
+												<MenuItem value={b.bud} key={b.bud}>
+													{b.bud}
+												</MenuItem>
+											))
+										)}
 									</Select>
 								</FormControl>
-								{(record as Transaction).category && (
-									<BudgetChip
-										option={(record as Transaction).category}
-									></BudgetChip>
+								{(record as Transaction).category && budgets.length !== 0 && (
+									<BudgetChip option={(record as Transaction).category} />
 								)}
 							</Stack>
 							<Stack
@@ -155,7 +170,7 @@ const RecrodCreationDialog = ({ open, toggleModal }: RecrodCreationDialogProps) 
 							>
 								<Typography variant='regularSubHeading'>Remaining</Typography>
 								<Typography variant='numberHeading'>
-									RM{" "}
+									RM
 									{amountLeftCategory !== undefined ? amountLeftCategory : "--"}
 								</Typography>
 							</Stack>
@@ -245,4 +260,4 @@ const RecrodCreationDialog = ({ open, toggleModal }: RecrodCreationDialogProps) 
 	);
 };
 
-export default RecrodCreationDialog;
+export default RecordCreationDialog;

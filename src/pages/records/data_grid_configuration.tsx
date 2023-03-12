@@ -109,9 +109,15 @@ const data_grid_configuration = (
 			headerName: "Budget Plan",
 			type: "number",
 			width: 150,
-			editable: true,
+			editable: false,
 			align: "left",
 			headerAlign: "left",
+		},
+		{
+			field: "account",
+			headerName: "Deducted from",
+			width: 150,
+			editable: false
 		},
 		{
 			field: "transactionDate",

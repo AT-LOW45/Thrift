@@ -30,10 +30,9 @@ const AccountConfiguration = () => {
 		);
 
 	useEffect(() => {
-		updateContext({ key: "paymentInfo", value: group }, (data) => {
-			console.log(data)
-			return [validateRegistrationFields(data)];
-		});
+		updateContext({ key: "paymentInfo", value: group }, (data) => [
+			validateRegistrationFields(data),
+		]);
 	}, [group.length]);
 
 	const handleGroupChange = (
@@ -73,7 +72,7 @@ const AccountConfiguration = () => {
 							name='balance'
 							type='number'
 							onChange={(e) => handleGroupChange(index, e)}
-							value={isNaN(personalAcc.balance) ?  "" : personalAcc.balance}
+							value={isNaN(personalAcc.balance) ? "" : personalAcc.balance}
 							sx={{ flexBasis: "30%" }}
 						/>
 						<FormControl fullWidth variant='standard' sx={{ flexBasis: "40%" }}>

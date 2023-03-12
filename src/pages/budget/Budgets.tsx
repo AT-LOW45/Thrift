@@ -1,11 +1,12 @@
 import AddIcon from "@mui/icons-material/Add";
 import { Box, Button, Stack, Typography } from "@mui/material";
 import Grid2 from "@mui/material/Unstable_Grid2";
-import { ArcElement, Chart as ChartJS, Legend, Tooltip } from "chart.js";
+import { getAuth } from "firebase/auth";
 import { collection, getDocs, getFirestore, onSnapshot, query, where } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import { AuthContext } from "../../context/AuthContext";
 import { MultiStep } from "../../context/MultiStepContext";
-import { BudgetPlan, BudgetPlanSchema, BudgetPlanSchemaDefaults } from "../../features/budget";
+import { BudgetPlan, BudgetPlanSchemaDefaults } from "../../features/budget";
 import BudgetPlanCreationModal from "../../features/budget/components/BudgetPlanCreationModal";
 import BudgetPlanTray from "../../features/budget/components/BudgetPlanTray";
 import Second from "../../features/budget/components/budget_plan_creation/BudgetSetup";
@@ -17,14 +18,19 @@ import app from "../../firebaseConfig";
 const Budgets = () => {
 	const [modalOpen, setModalOpen] = useState(false);
 	const [budgetPlans, setBudgetPlans] = useState<BudgetPlan[]>([]);
+	const [plannedPaymentEnabled, setPlannedPaymentEnabled] = useState(false);
+	const {user} = useContext(AuthContext)
 
 	useEffect(() => {
+		
 		const subscribeBudgetPlans = () => {
 			const firestore = getFirestore(app);
 			const budgetPlanRef = collection(firestore, "BudgetPlan");
+			const budgetPlanQuery = query(budgetPlanRef, where("userUid", "==", user?.uid!))
 			const transactionRef = collection(firestore, "Transaction");
 
-			const budgetPlanStream = onSnapshot(budgetPlanRef, async (snapshot) => {
+
+			const budgetPlanStream = onSnapshot(budgetPlanQuery, async (snapshot) => {
 				const result = snapshot.docs.map(
 					(doc) => ({ id: doc.id, ...doc.data() } as BudgetPlan)
 				);
@@ -58,10 +64,7 @@ const Budgets = () => {
 						} as BudgetPlan;
 					})
 				);
-				setBudgetPlans(() => {
-					console.log(plans);
-					return plans;
-				});
+				setBudgetPlans(plans);
 			});
 			return budgetPlanStream;
 		};
@@ -75,8 +78,6 @@ const Budgets = () => {
 	const toggleModal = () => {
 		setModalOpen((open) => !open);
 	};
-
-	ChartJS.register(ArcElement, Tooltip, Legend);
 
 	return (
 		<Box sx={{ pt: 2, px: 3 }}>
@@ -100,9 +101,21 @@ const Budgets = () => {
 			</Grid2>
 			<MultiStep
 				defaultValues={BudgetPlanSchemaDefaults.parse({})}
-				steps={[<PlanOverview key={1} />, <Second key={2} />, <Threshold key={3} />]}
+				steps={[
+					<PlanOverview key={1} />,
+					<Second
+						key={2}
+						enabled={plannedPaymentEnabled}
+						setEnabled={setPlannedPaymentEnabled}
+					/>,
+					<Threshold key={3} />,
+				]}
 			>
-				<BudgetPlanCreationModal open={modalOpen} toggleModal={toggleModal} />
+				<BudgetPlanCreationModal
+					open={modalOpen}
+					toggleModal={toggleModal}
+					plannedPaymentEnabled={plannedPaymentEnabled}
+				/>
 			</MultiStep>
 		</Box>
 	);

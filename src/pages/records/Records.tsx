@@ -2,7 +2,7 @@ import { Box, Button, Stack, styled, Typography } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { useState } from "react";
 import RecordDetailsDialog from "../../features/transaction/components/RecordDetailsDialog";
-import RecordCreationDialog from "../../features/transaction/components/RecrodCreationDialog";
+import RecordCreationDialog from "../../features/transaction/components/RecordCreationDialog";
 import {
 	Income,
 	Transaction,
@@ -21,19 +21,15 @@ const Records = () => {
 		TransactionSchemaDefaults.parse({})
 	);
 	const [creationDialogOpen, setCreationDialogOpen] = useState(false);
+	const [errorInfoBar, setErrorInfoBarOpen] = useState(false);
 
-	const toggleDialog = () => {
-		setOpen((isOpen) => !isOpen);
-	};
+	const toggleDialog = () => setOpen((isOpen) => !isOpen);
 
-	const toggleCreationDialog = () => {
-		setCreationDialogOpen((isOpen) => !isOpen);
-	};
+	const toggleCreationDialog = () => setCreationDialogOpen((isOpen) => !isOpen);
 
 	const openDialog = (recordId: string) => {
 		const record = firestoreCollection.find((rec) => rec.id === recordId);
 		if (record) {
-			console.log(record.labels);
 			setSelectedRecord(record);
 			toggleDialog();
 		}
@@ -45,13 +41,10 @@ const Records = () => {
 		},
 	}));
 
-	const isTransaction = (record: Transaction | Income): record is Transaction => {
-		return "category" in record;
-	};
+	const isTransaction = (record: Transaction | Income): record is Transaction =>
+		"category" in record;
 
-	const isIncome = (record: Transaction | Income): record is Income => {
-		return "type" in record;
-	};
+	const isIncome = (record: Transaction | Income): record is Income => "type" in record;
 
 	const { columnsIncome, columnsTransactions } = data_grid_configuration(
 		openDialog,
@@ -73,6 +66,7 @@ const Records = () => {
 		id: transaction.id,
 		category: transaction.category,
 		budgetPlan: transaction.budgetPlanName,
+		account: transaction.accountName,
 		amount: transaction.amount,
 		transactionDate: new Date(
 			(transaction.transactionDate as FirestoreTimestampObject).seconds * 1000
@@ -126,7 +120,11 @@ const Records = () => {
 				/>
 			</Stack>
 
-			<RecordCreationDialog open={creationDialogOpen} toggleModal={toggleCreationDialog} />
+			<RecordCreationDialog
+				open={creationDialogOpen}
+				toggleModal={toggleCreationDialog}
+				openInfoBar={setErrorInfoBarOpen}
+			/>
 			<RecordDetailsDialog open={open} toggleModal={toggleDialog} record={selectedRecord} />
 		</Box>
 	);

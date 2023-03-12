@@ -27,7 +27,6 @@ const ResponsiveDrawer = () => {
 		{ text: "Transactions", link: "/transactions", icon: CompareArrowsIcon },
 		{ text: "Accounts and Payment Details", link: "accounts", icon: AccountBalanceIcon },
 		{ text: "Community", link: "/community", icon: Diversity3Icon },
-		{ text: "Performance", link: "/performance", icon: ContentPasteIcon },
 		{ text: "Group Planning", link: "/group-planning", icon: PeopleIcon },
 	] as const;
 

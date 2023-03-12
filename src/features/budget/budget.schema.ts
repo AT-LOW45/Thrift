@@ -17,15 +17,16 @@ export const PlannedPaymentSchema = zod.object({
 
 export const BudgetPlanSchema = zod.object({
 	id: zod.string().optional(),
-	name: zod.string().min(5).max(15),
+	name: zod.string().min(5).max(30),
 	spendingLimit: zod.number().gte(100),
 	spendingThreshold: zod.number().nonnegative().lte(100),
 	note: zod.string().min(10).max(200),
 	renewalTerm: zod.union([zod.literal("biweekly"), zod.literal("monthly")]),
 	categories: zod.array(CategorySchema),
-	plannedPayments: zod.array(PlannedPaymentSchema),
+	plannedPayments: zod.array(PlannedPaymentSchema).nullable(),
 	amountLeftPercentage: zod.number().nonnegative().lte(100).optional(),
 	amountLeftCurrency: zod.number().nonnegative().optional(),
+	userUid: zod.string()
 });
 
 export const CategorySchemaDefaults = zod.object({
@@ -52,15 +53,16 @@ export const BudgetPlanSchemaDefaults = zod.object({
 	plannedPayments: zod.array(PlannedPaymentSchemaDefaults).default([{}]),
 	amountLeftPercentage: zod.number().optional(),
 	amountLeftCurrency: zod.number().optional(),
+	userUid: zod.string().default("")
 });
 
-export const BudgetPlanOverviewShcema = BudgetPlanSchema.pick({
+export const BudgetPlanOverviewSchema = BudgetPlanSchema.pick({
 	note: true,
 	spendingLimit: true,
 	spendingThreshold: true,
 });
 
 export type BudgetPlan = zod.infer<typeof BudgetPlanSchema>;
-export type BudgetPlanOverview = zod.infer<typeof BudgetPlanOverviewShcema>;
+export type BudgetPlanOverview = zod.infer<typeof BudgetPlanOverviewSchema>;
 export type Category = zod.infer<typeof CategorySchema>;
 export type PlannedPayment = zod.infer<typeof PlannedPaymentSchema>;

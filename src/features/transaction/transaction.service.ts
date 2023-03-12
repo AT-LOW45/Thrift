@@ -2,12 +2,15 @@ import { addDoc, collection, getFirestore } from "firebase/firestore";
 import { ThriftServiceProvider } from "../../service/thrift";
 import { Income, IncomeSchema, Transaction, TransactionSchema } from "./transaction.schema";
 import app from "../../firebaseConfig";
+import paymentInfoService from "../payment_info/paymentInfo.service";
+import { getAuth } from "firebase/auth";
 
 interface TransactionServiceProvider extends ThriftServiceProvider<Transaction | Income> {
 	validateRecordDetails(record: Transaction | Income): boolean;
 }
 
 const firestore = getFirestore(app);
+const auth = getAuth(app);
 
 const transactionService: TransactionServiceProvider = {
 	readAll: async function (): Promise<Transaction[]> {
@@ -29,7 +32,15 @@ const transactionService: TransactionServiceProvider = {
 				labels: Array.from(labels),
 				...rest,
 			});
-			return newRecordRef.id;
+
+			const transactionMade = await paymentInfoService.updateAmount(
+				result.data.amount,
+				"category" in entity ? "debit" : "credit",
+				auth.currentUser?.uid!,
+				entity.accountName
+			);
+
+			return transactionMade ? newRecordRef.id : false;
 		} else {
 			return false;
 		}

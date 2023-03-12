@@ -1,3 +1,4 @@
+import { getAuth } from "firebase/auth";
 import {
 	addDoc,
 	collection,
@@ -36,21 +37,19 @@ interface BudgetServiceProvider extends ThriftServiceProvider<BudgetPlan> {
 }
 
 const firestore = getFirestore(app);
+const auth = getAuth(app);
 
 const budgetService: BudgetServiceProvider = {
 	readAll: async function (): Promise<BudgetPlan[]> {
 		const budgetPlanRef = collection(firestore, "BudgetPlan");
-		const budgetPlans = (await getDocs(budgetPlanRef)).docs.map(
+		const budgetPlanQuery = query(budgetPlanRef, where("userUid", "==", auth.currentUser?.uid));
+		const budgetPlans = (await getDocs(budgetPlanQuery)).docs.map(
 			(snapshot) => ({ id: snapshot.id, ...snapshot.data() } as BudgetPlan)
 		);
 		return budgetPlans;
 	},
 	find: async function (): Promise<BudgetPlan> {
-		const planRef = doc(firestore, "BudgetPlan", "KTJVgpsitR6zD76LUQDa");
-		const result = getDoc(planRef).then((da) => {
-			return da.data() as BudgetPlan;
-		});
-		return result;
+		throw new Error("function not implemented");
 	},
 	addDoc: async function (entity: BudgetPlan) {
 		const result = BudgetPlanSchema.safeParse(entity);
@@ -58,7 +57,10 @@ const budgetService: BudgetServiceProvider = {
 		if (result.success === true) {
 			const budgetPlanRef = collection(firestore, "BudgetPlan");
 			const { amountLeftCurrency, amountLeftPercentage, ...rest } = result.data;
-			const newPlanRef = await addDoc(budgetPlanRef, rest);
+			const newPlanRef = await addDoc(budgetPlanRef, {
+				...rest,
+				userUid: auth.currentUser?.uid,
+			});
 			return newPlanRef.id;
 		} else {
 			return false;
@@ -85,7 +87,7 @@ const budgetService: BudgetServiceProvider = {
 	},
 	validateLimit: function (plan: BudgetPlan) {
 		return (
-			plan.categories[0].spendingLimit + plan.plannedPayments[0].amount < plan.spendingLimit
+			plan.categories[0].spendingLimit + plan.plannedPayments![0].amount < plan.spendingLimit
 		);
 	},
 	getRemainingOverallAmount: async function (id: string) {
@@ -103,11 +105,11 @@ const budgetService: BudgetServiceProvider = {
 		);
 
 		const transactions = (await getDocs(transactionQuery)).docs.map(
-			(transac) => transac.data() as Transaction
+			(transaction) => transaction.data() as Transaction
 		);
 
 		const plannedPaymentsAmount =
-			planCasted.plannedPayments === undefined
+			planCasted.plannedPayments === null
 				? 0
 				: planCasted.plannedPayments
 						.map((planned) => planned.amount)
@@ -115,7 +117,9 @@ const budgetService: BudgetServiceProvider = {
 
 		const amountLeftCurrency =
 			planCasted.spendingLimit -
-			transactions.map((transac) => transac.amount).reduce((prev, cur) => prev + cur, 0) -
+			transactions
+				.map((transaction) => transaction.amount)
+				.reduce((prev, cur) => prev + cur, 0) -
 			plannedPaymentsAmount;
 
 		const amountLeftPercentage = Math.round(

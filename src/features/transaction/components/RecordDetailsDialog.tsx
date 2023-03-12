@@ -8,7 +8,7 @@ import {
 	Divider,
 	Portal,
 	Stack,
-	Typography
+	Typography,
 } from "@mui/material";
 import { Fragment } from "react";
 import { FirestoreTimestampObject } from "../../../service/thrift";
@@ -56,9 +56,7 @@ const RecordDetailsDialog = ({ open, toggleModal, record }: RecordDetailsDialogP
 									</Fragment>
 								) : (
 									<Fragment>
-										<Typography variant='regularSubHeading'>
-											Type
-										</Typography>
+										<Typography variant='regularSubHeading'>Type</Typography>
 										<Typography>{record.type}</Typography>
 									</Fragment>
 								)}
@@ -70,9 +68,7 @@ const RecordDetailsDialog = ({ open, toggleModal, record }: RecordDetailsDialogP
 								justifyContent='center'
 								spacing={2}
 							>
-								<Typography variant='regularSubHeading'>
-									Amount
-								</Typography>
+								<Typography variant='regularSubHeading'>Amount</Typography>
 								<Typography variant='numberHeading'>RM {record.amount}</Typography>
 							</Stack>
 							{isTransaction(record) && (
@@ -83,18 +79,23 @@ const RecordDetailsDialog = ({ open, toggleModal, record }: RecordDetailsDialogP
 									justifyContent='center'
 									spacing={2}
 								>
-									<Typography variant='regularSubHeading'>
-										Budget Plan
-									</Typography>
+									<Typography variant='regularSubHeading'>Budget Plan</Typography>
 									<Typography>{record.budgetPlanName}</Typography>
 								</Stack>
 							)}
 						</Stack>
 						<Divider />
 						<Stack direction='row' sx={{ pt: 2 }} spacing={2}>
+							<DialogContentText>
+								{isTransaction(record) ? "Deducted from:" : "Credited to:"}
+							</DialogContentText>
+							<Typography>{record.accountName}</Typography>
+						</Stack>
+						<Stack direction='row' spacing={2}>
 							<DialogContentText>Transaction Date: </DialogContentText>
 							<Typography>
-								{dateConverted.toLocaleDateString()}, {dateConverted.toLocaleTimeString("en-US")}
+								{dateConverted.toLocaleDateString()},{" "}
+								{dateConverted.toLocaleTimeString("en-US")}
 							</Typography>
 						</Stack>
 						<DialogContentText>Description:</DialogContentText>

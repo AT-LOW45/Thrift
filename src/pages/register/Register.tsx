@@ -48,10 +48,7 @@ const Register = () => {
 
 	const signUp = () => {
 		signUpWithEmailAndPassword(formData)
-			.then((res) => {
-				console.log(res)
-				navigate("/overview")
-			})
+			.then((res) => navigate("/overview"))
 			.catch(() => console.log("something went wrong"));
 	};
 
