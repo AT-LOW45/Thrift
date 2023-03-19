@@ -9,15 +9,18 @@ import {
 	LineElement,
 	PointElement,
 	Title,
-	Tooltip
+	Tooltip,
 } from "chart.js";
 import { useState } from "react";
 import { Bar, Line } from "react-chartjs-2";
+import { useParams } from "react-router-dom";
 import { TabPanel, Tray } from "../../components";
 import { Editable } from "../../context/EditableContext";
-import { BudgetPlanOverview, CategorySchemaDefaults } from "../../features/budget/budget.schema";
+import { BudgetPlan } from "../../features/budget/budget.schema";
 import BudgetCategories from "../../features/budget/components/BudgetCategories";
 import BudgetOverviewDetails from "../../features/budget/components/BudgetOverviewDetails";
+import BudgetPlanTitle from "../../features/budget/components/BudgetPlanTitle";
+import useRealtimeUpdate from "../../hooks/useRealtimeUpdate";
 import { barData, barOptions, data, options } from "./mock_chart_data";
 
 const BudgetPlanDetails = () => {
@@ -33,6 +36,10 @@ const BudgetPlanDetails = () => {
 	);
 
 	const [value, setValue] = useState(0);
+	const { id } = useParams();
+	const { firestoreDoc, isLoading } = useRealtimeUpdate<BudgetPlan>({
+		data: { collection: "BudgetPlan", id },
+	});
 
 	const handleChange = (event: React.SyntheticEvent, newValue: number) => {
 		setValue(newValue);
@@ -40,22 +47,27 @@ const BudgetPlanDetails = () => {
 
 	return (
 		<Box sx={{ pt: 2, px: 3 }}>
-			<Typography variant='regularHeading'>Budget Plan 1</Typography>
+			{!isLoading && (
+				<Editable key={firestoreDoc.name} initialValues={firestoreDoc}>
+					<BudgetPlanTitle />
+				</Editable>
+			)}
+
 			<Tabs value={value} onChange={handleChange} centered sx={{ mt: 4 }}>
 				<Tab label='Budget Plan' />
 				<Tab label='Categories' />
 			</Tabs>
 			<TabPanel value={value} index={0}>
 				<Stack direction='column' spacing={3}>
-					<Editable
-						initialValues={{
-							note: "lorem10",
-							spendingLimit: 100,
-							spendingThreshold: 80
-						} as BudgetPlanOverview}
-					>
-						<BudgetOverviewDetails />
-					</Editable>
+					{!isLoading && (
+						<Editable
+							key={`${firestoreDoc.spendingLimit}_${firestoreDoc.spendingThreshold}_${firestoreDoc.note}`}
+							initialValues={firestoreDoc}
+						>
+							<BudgetOverviewDetails />
+						</Editable>
+					)}
+
 					<Tray title='Expense Trend'>
 						<Line options={options} data={data} />
 					</Tray>
@@ -76,9 +88,14 @@ const BudgetPlanDetails = () => {
 				</Stack>
 			</TabPanel>
 			<TabPanel value={value} index={1}>
-				<Editable initialValues={CategorySchemaDefaults.parse({})}>
-					<BudgetCategories />
-				</Editable>
+				{!isLoading && (
+					<Editable
+						initialValues={firestoreDoc}
+						key={`${firestoreDoc.categories}_${firestoreDoc.plannedPayments}`}
+					>
+						<BudgetCategories />
+					</Editable>
+				)}
 			</TabPanel>
 		</Box>
 	);

@@ -1,7 +1,6 @@
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import AnalyticsIcon from "@mui/icons-material/Analytics";
 import CompareArrowsIcon from "@mui/icons-material/CompareArrows";
-import ContentPasteIcon from "@mui/icons-material/ContentPaste";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import Diversity3Icon from "@mui/icons-material/Diversity3";
 import PeopleIcon from "@mui/icons-material/People";
@@ -13,9 +12,10 @@ import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import { useContext } from "react";
-import { NavLink, useLocation } from "react-router-dom";
-import DrawerContext from "./DrawerContext";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import theme from "../../assets/theme";
+import thriftLogo from "../../assets/Thrift-logos_transparent.png";
+import DrawerContext from "./DrawerContext";
 
 const ResponsiveDrawer = () => {
 	const location = useLocation();
@@ -32,6 +32,9 @@ const ResponsiveDrawer = () => {
 
 	const drawer = (
 		<div>
+			<Link to='/overview'>
+				<img src={thriftLogo} style={{ width: "100%", height: "auto" }} alt='' />
+			</Link>
 			<Divider />
 			<List>
 				{navOptions.map((option) => (

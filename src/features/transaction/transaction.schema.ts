@@ -14,9 +14,9 @@ export const TransactionSchema = zod.object({
 	category: ChipOptionsSchema,
 	amount: zod.number().nonnegative().gt(0),
 	budgetPlanId: zod.string().default("N/A"),
-	budgetPlanName: zod.string().min(1).default("N/A"),
+	budgetPlanName: zod.string().optional(),
 	accountId: zod.string(),
-	accountName: zod.string().min(1),
+	accountName: zod.string().optional(),
 	transactionDate: zod.union([zod.date(), FirestoreTimestampObjectSchema]),
 	labels: zod.set(zod.string())
 });
@@ -36,8 +36,8 @@ export const TransactionSchemaDefaults = zod.object({
 	category: ChipOptionsSchema.default("entertainment"),
 	amount: zod.number().default(0),
 	budgetPlanId: zod.string().default(""),
-	budgetPlanName: zod.string().default(""),
-	accountName: zod.string().default(""),
+	budgetPlanName: zod.string().optional(),
+	accountName: zod.string().optional(),
 	accountId: zod.string().default(""),
 	transactionDate: zod.union([zod.date(), FirestoreTimestampObjectSchema]).default(new Date()),
 	labels: zod.set(zod.string()).default(new Set()),

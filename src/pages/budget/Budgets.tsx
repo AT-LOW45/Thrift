@@ -19,16 +19,18 @@ const Budgets = () => {
 	const [modalOpen, setModalOpen] = useState(false);
 	const [budgetPlans, setBudgetPlans] = useState<BudgetPlan[]>([]);
 	const [plannedPaymentEnabled, setPlannedPaymentEnabled] = useState(false);
-	const {user} = useContext(AuthContext)
+	const { user } = useContext(AuthContext);
 
 	useEffect(() => {
-		
 		const subscribeBudgetPlans = () => {
 			const firestore = getFirestore(app);
 			const budgetPlanRef = collection(firestore, "BudgetPlan");
-			const budgetPlanQuery = query(budgetPlanRef, where("userUid", "==", user?.uid!))
+			const budgetPlanQuery = query(
+				budgetPlanRef,
+				where("userUid", "==", user?.uid!),
+				where("isActive", "==", true)
+			);
 			const transactionRef = collection(firestore, "Transaction");
-
 
 			const budgetPlanStream = onSnapshot(budgetPlanQuery, async (snapshot) => {
 				const result = snapshot.docs.map(

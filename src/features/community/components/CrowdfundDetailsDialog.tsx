@@ -1,111 +1,42 @@
 import {
 	Avatar,
 	Box,
+	Button,
 	Dialog,
 	DialogContent,
+	DialogContentText,
 	DialogTitle,
 	Divider,
-	Portal,
-	Stack,
-	Typography,
-	DialogContentText,
-	TextField,
-	Button,
 	FormControl,
 	InputLabel,
-	Select,
 	MenuItem,
+	Portal,
+	Select,
+	Stack,
+	TextField,
+	Typography,
 } from "@mui/material";
-import { SelectChangeEvent } from "@mui/material/Select";
-import { ChangeEvent, Fragment, useContext, useEffect, useState } from "react";
+import { Fragment } from "react";
 import { ProgressBar } from "../../../components";
-import { AuthContext } from "../../../context/AuthContext";
-import { PersonalAccount } from "../../payment_info/paymentInfo.schema";
-import paymentInfoService from "../../payment_info/paymentInfo.service";
 import { CrowdFund } from "../community.schema";
-import communityService from "../community.service";
+import useCrowdfundDetails from "../hooks/useCrowdfundDetails";
 
 type CrowdfundDetailsDialogProps = {
 	open: boolean;
 	toggleModal(): void;
 	crowdfund: CrowdFund;
+	crowdfundCumulativeAmount: { currency: number; percentage: number };
 };
 
-const CrowdfundDetailsDialog = ({ crowdfund, open, toggleModal }: CrowdfundDetailsDialogProps) => {
-	const [accounts, setAccounts] = useState<PersonalAccount[]>([]);
-	const [donation, setDonation] = useState<{
-		accountName: string;
-		accountId: string;
-		amount: number;
-	}>({
-		accountName: "",
-		accountId: "",
-		amount: 0,
-	});
-	const [cumulativeAmount, setCumulativeAmount] = useState<{
-		currency: number;
-		percentage: number;
-	}>({ currency: 0, percentage: 0 });
-	const [balance, setBalance] = useState<number>();
-	const { user } = useContext(AuthContext);
-
-	useEffect(() => {
-		console.log(crowdfund)
-		const currency =
-			crowdfund.contributors.length === 0
-				? 0
-				: crowdfund.contributors
-						.map((cont) => cont.amount)
-						.reduce((prev, cur) => prev + cur, 0);
-		// console.log(crowdfund.contributors);
-		const percentage = Math.round((currency / crowdfund.targetAmount) * 100);
-		console.log(percentage)
-		setCumulativeAmount({ currency, percentage });
-	}, [crowdfund]);
-
-	useEffect(() => {
-		const getPaymentAccounts = async () => {
-			const personalAccounts = await paymentInfoService.getPersonalAccounts();
-			setAccounts(personalAccounts);
-		};
-		getPaymentAccounts();
-	}, []);
-
-	const handleAccountChange = (event: SelectChangeEvent) => {
-		const selectedAccount = accounts.find((acc) => acc.name === event.target.value);
-		setDonation((donation) => ({
-			...donation,
-			accountName: event.target.value,
-			accountId: selectedAccount?.id!,
-		}));
-		setBalance(selectedAccount?.balance);
-	};
-
-	const handleDonationChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-		setDonation((donation) => ({ ...donation, amount: parseInt(event.target.value) }));
-	};
-
-	const donate = async () => {
-		const selectedAccount = accounts.find((acc) => acc.name === donation.accountName);
-		if (
-			donation.amount > selectedAccount?.balance! ||
-			donation.amount === 0 ||
-			donation.accountName === ""
-		) {
-			console.log("cannot donate");
-		} else {
-			const contributionResult = await communityService.contribute(
-				user?.uid!,
-				donation,
-				crowdfund
-			);
-			if (typeof contributionResult === "string") {
-				toggleModal();
-			} else {
-				console.log("an error occurred");
-			}
-		}
-	};
+const CrowdfundDetailsDialog = ({
+	crowdfund,
+	open,
+	toggleModal,
+	crowdfundCumulativeAmount,
+}: CrowdfundDetailsDialogProps) => {
+	
+	const { balance, donate, donation, accounts, handleAccountChange, handleDonationChange } =
+		useCrowdfundDetails(toggleModal, crowdfund);
 
 	return (
 		<Portal>
@@ -167,10 +98,11 @@ const CrowdfundDetailsDialog = ({ crowdfund, open, toggleModal }: CrowdfundDetai
 						</Stack>
 						<Stack spacing={1} px={7}>
 							<Typography variant='numberHeading'>
-								RM {cumulativeAmount.currency} / RM {crowdfund.targetAmount}
+								RM {crowdfundCumulativeAmount.currency} / RM{" "}
+								{crowdfund.targetAmount}
 							</Typography>
 							<ProgressBar
-								fillPercentage={cumulativeAmount.percentage}
+								fillPercentage={crowdfundCumulativeAmount.percentage}
 								fillType='#1A46C4'
 							/>
 						</Stack>

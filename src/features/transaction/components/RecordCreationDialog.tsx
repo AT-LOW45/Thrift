@@ -15,7 +15,7 @@ import { Dispatch, Fragment, SetStateAction } from "react";
 import FormDialog, { FormDialogProps } from "../../../components/form/FormDialog";
 import BudgetChip from "../../budget/components/BudgetChip";
 import { Income, incomeTypes, Transaction, TransactionSchemaDefaults } from "../transaction.schema";
-import useCreateRecord from "../useCreateRecord";
+import useCreateRecord from "../hooks/useCreateRecord";
 
 type RecordCreationDialogProps = Pick<FormDialogProps, "open" | "toggleModal"> & {
 	openInfoBar: Dispatch<SetStateAction<boolean>>;
@@ -58,11 +58,11 @@ const RecordCreationDialog = ({ open, toggleModal, openInfoBar }: RecordCreation
 			]}
 			open={open}
 			toggleModal={() => {
+				// setBudgets([]);
+				// setAmountLeftCategory(undefined);
+				// setBalance(undefined);
+				// setRecord(TransactionSchemaDefaults.parse({}));
 				setBudgets([]);
-				setAmountLeftCategory(undefined);
-				setBalance(undefined);
-				setRecord(TransactionSchemaDefaults.parse({}));
-
 				toggleModal();
 			}}
 		>
@@ -88,7 +88,7 @@ const RecordCreationDialog = ({ open, toggleModal, openInfoBar }: RecordCreation
 						<InputLabel id='account'>Account</InputLabel>
 						<Select
 							labelId='account'
-							value={accounts.length === 0 ? "Not selected" : record.accountName}
+							value={record.accountName ? record.accountName : ""}
 							name='accountName'
 							onChange={handleAccountChange}
 							label='Account'
@@ -119,7 +119,11 @@ const RecordCreationDialog = ({ open, toggleModal, openInfoBar }: RecordCreation
 								<InputLabel id='budgetPlan'>Budget Plan</InputLabel>
 								<Select
 									labelId='budgetPlan'
-									value={(record as Transaction).budgetPlanName}
+									value={
+										(record as Transaction).budgetPlanName
+											? (record as Transaction).budgetPlanName
+											: ""
+									}
 									name='budgetPlanName'
 									onChange={handleSelectChange}
 									label='Budget Plan'
@@ -139,7 +143,7 @@ const RecordCreationDialog = ({ open, toggleModal, openInfoBar }: RecordCreation
 									<Select
 										labelId='category'
 										value={
-											budgets.length !== 0
+											(record as Transaction).category && budgets.length !== 0
 												? (record as Transaction).category
 												: ""
 										}

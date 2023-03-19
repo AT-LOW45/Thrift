@@ -3,6 +3,7 @@ import { FirestoreTimestampObjectSchema } from "../../service/thrift";
 import { ChipOptionsSchema } from "./components/BudgetChip";
 
 export const CategorySchema = zod.object({
+	id: zod.string().optional(),
 	name: ChipOptionsSchema,
 	spendingLimit: zod.number().nonnegative().gt(0),
 	amountLeftPercentage: zod.number().nonnegative().lte(100).optional(),
@@ -10,6 +11,7 @@ export const CategorySchema = zod.object({
 });
 
 export const PlannedPaymentSchema = zod.object({
+	id: zod.string().optional(),
 	name: zod.string().min(5),
 	amount: zod.number().nonnegative().gte(10),
 	startDate: zod.union([zod.date(), FirestoreTimestampObjectSchema]),
@@ -30,6 +32,7 @@ export const BudgetPlanSchema = zod.object({
 });
 
 export const CategorySchemaDefaults = zod.object({
+	id: zod.string().optional(),
 	name: ChipOptionsSchema.default("entertainment"),
 	spendingLimit: zod.number().default(0),
 	amountLeftPercentage: zod.number().optional(),
@@ -37,6 +40,7 @@ export const CategorySchemaDefaults = zod.object({
 });
 
 export const PlannedPaymentSchemaDefaults = zod.object({
+	id: zod.string().optional(),
 	name: zod.string().default(""),
 	amount: zod.number().default(0),
 	startDate: zod.union([zod.date(), FirestoreTimestampObjectSchema]).default(new Date()),

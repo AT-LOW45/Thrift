@@ -1,30 +1,21 @@
-import { Stack, TextField, Typography } from "@mui/material";
+import { Box, Slider, Stack, TextField, Typography } from "@mui/material";
 import { Fragment } from "react";
 import EditableField from "../../../components/form/editable/EditableField";
-import { useEditable } from "../../../context/EditableContext";
-import { BudgetPlanOverview } from "../budget.schema";
-
-const mockAllocationData = [
-	{ field: "Allocated", amount: 300, colour: "black" },
-	{ field: "Spent", amount: 60, colour: "red" },
-	{ field: "Planned Payments", amount: 100, colour: "#F8964C" },
-	{ field: "Remaining", amount: 100, colour: "green" },
-];
+import useBudgetOverviewEdit from "../hooks/useBudgetOverviewEdit";
 
 const BudgetOverviewDetails = () => {
-	const { setFormContext, handleInputChange } = useEditable<BudgetPlanOverview>();
-
-	setFormContext(async (x) => {
-		console.log(x.note);
-	});
-
-	const getMathOperator = (index: number, array: typeof mockAllocationData): string => {
-		if (index === array.length - 1) return "";
-		return index === array.length - 2 ? "=" : "-";
-	};
+	const {
+		allocationData,
+		formData,
+		getMathOperator,
+		handleSliderChange,
+		placeholderFormData,
+		handleLimit,
+		handleNote,
+	} = useBudgetOverviewEdit();
 
 	return (
-		<Fragment>
+		<Stack spacing={2}>
 			<EditableField compact>
 				<EditableField.View>
 					<Stack
@@ -32,7 +23,7 @@ const BudgetOverviewDetails = () => {
 						spacing={{ xs: 1, md: 3 }}
 						alignItems='center'
 					>
-						{mockAllocationData.map((data, index, array) => (
+						{allocationData.map((data, index, array) => (
 							<Fragment key={data.field}>
 								<Stack
 									direction='column'
@@ -55,22 +46,35 @@ const BudgetOverviewDetails = () => {
 					<TextField
 						name='spendingLimit'
 						variant='standard'
-						onChange={handleInputChange}
+						value={placeholderFormData.spendingLimit}
+						onChange={handleLimit}
 					/>
 				</EditableField.Edit>
 			</EditableField>
 			<EditableField compact>
 				<EditableField.View>
 					<Typography variant='regularLight' component='p'>
-						Usage is at 25% You will be alerted once it reaches 80%
+						Usage is at 25% You will be alerted once it reaches &nbsp;
+						{formData.spendingThreshold}%
 					</Typography>
 				</EditableField.View>
 				<EditableField.Edit>
-					<TextField
-						name='spendingThreshold'
-						variant='standard'
-						onChange={handleInputChange}
-					/>
+					<Box sx={{ width: 300 }}>
+						<Slider
+							sx={{ transition: "all 200ms" }}
+							aria-label='Temperature'
+							value={placeholderFormData.spendingThreshold}
+							onChange={handleSliderChange}
+							valueLabelDisplay='auto'
+							step={10}
+							marks
+							color={
+								placeholderFormData.spendingThreshold > 80 ? "warning" : "primary"
+							}
+							min={10}
+							max={100}
+						/>
+					</Box>
 				</EditableField.Edit>
 			</EditableField>
 			<Stack direction='column' sx={{ mt: 4 }} spacing={1}>
@@ -78,20 +82,24 @@ const BudgetOverviewDetails = () => {
 					<EditableField.View>
 						<Typography variant='regularSubHeading'>About this plan</Typography>
 						<Typography component='p' textAlign='justify'>
-							Lorem ipsum dolor sit amet consectetur adipisicing elit. Quibusdam iste
-							deserunt maxime perspiciatis, possimus sed aut dignissimos
-							necessitatibus aliquid tempore. Lorem, ipsum dolor sit amet consectetur
-							adipisicing elit. Et nemo distinctio assumenda doloribus eos aliquam
-							exercitationem harum beatae, atque praesentium itaque dicta magni
-							architecto natus repudiandae provident recusandae doloremque autem?
+							{formData.note}
 						</Typography>
 					</EditableField.View>
 					<EditableField.Edit>
-						<TextField name='note' variant='standard' onChange={handleInputChange} />
+						<TextField
+							id='outlined-multiline-static'
+							label='Memo'
+							name='note'
+							value={placeholderFormData.note}
+							onChange={handleNote}
+							multiline
+							helperText='Add a short memo to describe this budget plan'
+							rows={4}
+						/>
 					</EditableField.Edit>
 				</EditableField>
 			</Stack>
-		</Fragment>
+		</Stack>
 	);
 };
 

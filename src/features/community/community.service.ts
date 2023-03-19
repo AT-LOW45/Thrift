@@ -156,10 +156,10 @@ const communityService: CommunityServiceProvider = {
 			description: `Crowdfund contribution to ${myCrowdfund.name}`,
 			amount: donation.amount,
 			accountId: donation.accountId,
-			accountName: donation.accountName,
+			accountName: donation.accountName
 		};
 
-		return await transactionService.addDoc(transaction as Transaction);
+		return await transactionService.addRecord(transaction as Transaction)
 	},
 	deleteDoc: async function () {
 		throw new Error("function not implemented");

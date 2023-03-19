@@ -1,20 +1,27 @@
-import React, {
-	createContext,
-	PropsWithChildren,
-	ReactNode, useContext, useMemo
-} from "react";
+import { SelectChangeEvent } from "@mui/material";
+import React, { createContext, PropsWithChildren, ReactNode, useContext, useMemo } from "react";
 import { ActorRefFrom } from "xstate";
 import editableStateMachine from "../components/form/editable/editableStateMachine";
 import useEditableContext from "../hooks/useEditableContext";
 import { Curry } from "../hooks/useFunctional";
 
+type Conditions = (boolean | boolean[])[];
 type EditableProps<T extends object> = { children: ReactNode; initialValues: T };
 export type EditableContextType<T extends object> = {
-	handleModeSwitch(event: React.MouseEvent): void;
+	handleModeSwitch(event: React.MouseEvent, activate: boolean): void;
 	editableService: ActorRefFrom<typeof editableStateMachine>;
 	handleInputChange(event: React.ChangeEvent<HTMLInputElement>): void;
 	setFormContext: Curry<[x: (event: T) => void], void>;
 	formData: T;
+	placeholderFormData: T;
+	updateContext: (
+		event:
+			| SelectChangeEvent
+			| React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
+			| { key: keyof T; value: any },
+		assignValidators: (context: T) => Conditions
+	) => void;
+	isValid: boolean;
 };
 
 export const EditableContext = createContext({} as EditableContextType<any>);
@@ -32,6 +39,9 @@ export const Editable = <T extends object>({
 		formRef,
 		setIsSubmitting,
 		isSubmitting,
+		updateContext,
+		isValid,
+		placeholderFormData,
 	} = useEditableContext(initialValues);
 
 	const memoizedContext = useMemo(
@@ -41,8 +51,11 @@ export const Editable = <T extends object>({
 			handleInputChange,
 			handleModeSwitch,
 			setFormContext,
+			updateContext,
+			isValid,
+			placeholderFormData,
 		}),
-		[isSubmitting, formData]
+		[isSubmitting, placeholderFormData, isValid]
 	);
 
 	return (
@@ -63,7 +76,24 @@ export const Editable = <T extends object>({
 };
 
 export const useEditable = <T extends object>() => {
-	const { editableService, formData, handleInputChange, handleModeSwitch, setFormContext } =
-		useContext<EditableContextType<T>>(EditableContext);
-	return { editableService, formData, handleInputChange, handleModeSwitch, setFormContext };
+	const {
+		editableService,
+		formData,
+		handleInputChange,
+		handleModeSwitch,
+		setFormContext,
+		updateContext,
+		isValid,
+		placeholderFormData,
+	} = useContext<EditableContextType<T>>(EditableContext);
+	return {
+		editableService,
+		formData,
+		handleInputChange,
+		handleModeSwitch,
+		setFormContext,
+		updateContext,
+		isValid,
+		placeholderFormData,
+	};
 };

@@ -26,7 +26,7 @@ const BudgetPlanTray = ({ budgetPlan }: BudgetPlanTrayProps) => {
 			title={budgetPlan.name}
 			actions={
 				<Fragment>
-					<Link to='/budgets/1' style={{ textDecoration: "none" }}>
+					<Link to={`/budgets/${budgetPlan.id}`} style={{ textDecoration: "none" }}>
 						<Button color='secondary' endIcon={<InfoTwoToneIcon />}>
 							View Plan
 						</Button>

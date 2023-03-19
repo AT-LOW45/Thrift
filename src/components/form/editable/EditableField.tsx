@@ -35,7 +35,7 @@ EditableField.View = ({ children }) => {
 	const editButtonRef = useRef<HTMLButtonElement>(null);
 
 	const { handleModeSwitch, editableService } = useContext(EditableContext);
-	const isEditting = useSelector(editableService, (state) => state.matches("Edit Active"));
+	const isEditing = useSelector(editableService, (state) => state.matches("Edit Active"));
 
 	const toggleEditButtonVisibility = () => {
 		const editButtonClassList = editButtonRef.current?.classList;
@@ -45,7 +45,7 @@ EditableField.View = ({ children }) => {
 	};
 
 	const activateEdit = (event: React.MouseEvent) => {
-		handleModeSwitch(event);
+		handleModeSwitch(event, true);
 		editableService.send("activate edit");
 	};
 
@@ -58,7 +58,7 @@ EditableField.View = ({ children }) => {
 			<Box>{children}</Box>
 			<Box sx={{ display: "flex", pl: { sm: 0, md: 3 } }}>
 				<Button
-					disabled={isEditting}
+					disabled={isEditing}
 					className='edit-button'
 					ref={editButtonRef}
 					startIcon={<EditIcon />}
@@ -79,10 +79,10 @@ EditableField.View = ({ children }) => {
 };
 
 EditableField.Edit = ({ children, additionalActions }) => {
-	const { handleModeSwitch, editableService } = useContext(EditableContext);
+	const { handleModeSwitch, editableService, isValid } = useContext(EditableContext);
 
 	const deactivateEdit = (event: React.MouseEvent) => {
-		handleModeSwitch(event);
+		handleModeSwitch(event, false);
 		editableService.send("deactivate edit");
 	};
 
@@ -94,7 +94,7 @@ EditableField.Edit = ({ children, additionalActions }) => {
 					aria-label='outlined primary button group'
 					sx={{ justifyContent: "center", display: { sm: "flex", md: "block" } }}
 				>
-					<IconButton type='submit'>
+					<IconButton type='submit' disabled={!isValid}>
 						<CheckIcon />
 					</IconButton>
 					<IconButton onClick={deactivateEdit}>

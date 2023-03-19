@@ -1,12 +1,14 @@
 import { getAuth } from "firebase/auth";
 import {
 	addDoc,
+	arrayUnion,
 	collection,
 	doc,
 	getDoc,
 	getDocs,
 	getFirestore,
 	query,
+	updateDoc,
 	where,
 } from "firebase/firestore";
 import app from "../../firebaseConfig";
@@ -34,6 +36,8 @@ interface BudgetServiceProvider extends ThriftServiceProvider<BudgetPlan> {
 		budgetPlanId: string,
 		category: ChipOptions
 	): Promise<{ amountLeftCurrencyCat: number; amountLeftPercentageCat: number }>;
+	updateBudgetPlan(budgetPlan: BudgetPlan, fields: Partial<BudgetPlan>): Promise<boolean>;
+	addNewBudgets(budgetPlanId: string, newItems: Category[]): Promise<boolean>;
 }
 
 const firestore = getFirestore(app);
@@ -48,8 +52,10 @@ const budgetService: BudgetServiceProvider = {
 		);
 		return budgetPlans;
 	},
-	find: async function (): Promise<BudgetPlan> {
-		throw new Error("function not implemented");
+	find: async function (id: string): Promise<BudgetPlan> {
+		const budgetPlanRef = doc(firestore, "BudgetPlan", id);
+		const budgetPlanDoc = await getDoc(budgetPlanRef);
+		return { id: budgetPlanDoc.id, ...budgetPlanDoc.data() } as BudgetPlan;
 	},
 	addDoc: async function (entity: BudgetPlan) {
 		const result = BudgetPlanSchema.safeParse(entity);
@@ -158,6 +164,33 @@ const budgetService: BudgetServiceProvider = {
 			return { amountLeftCurrencyCat, amountLeftPercentageCat };
 		} else {
 			return { amountLeftCurrencyCat: 0, amountLeftPercentageCat: 0 };
+		}
+	},
+	updateBudgetPlan: async function (budgetPlan: BudgetPlan, fields: Partial<BudgetPlan>) {
+		const result = BudgetPlanSchema.safeParse(budgetPlan);
+
+		if (result.success === true) {
+			const budgetPlanRef = doc(firestore, "BudgetPlan", budgetPlan.id!);
+			await updateDoc(budgetPlanRef, { ...fields });
+			return true;
+		} else {
+			return false;
+		}
+	},
+	addNewBudgets: async function (budgetPlanId: string, newBudgets: Category[]) {
+		const budgetPlanRef = doc(firestore, "BudgetPlan", budgetPlanId);
+		const result = newBudgets.every(this.validateCategory);
+		if (result) {
+			const idRemoved = newBudgets.map((budgets) => {
+				const { id, amountLeftCurrency, amountLeftPercentage, ...rest } = budgets;
+				return rest;
+			});
+			await updateDoc(budgetPlanRef, {
+				categories: arrayUnion(...idRemoved),
+			});
+			return true;
+		} else {
+			return false;
 		}
 	},
 };

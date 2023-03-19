@@ -1,6 +1,7 @@
 import { Stack, Typography } from "@mui/material";
-import { Fragment } from "react";
-import { BudgetChip } from "..";
+import { Fragment, useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { BudgetChip, budgetService } from "..";
 import { ProgressBar } from "../../../components";
 import { FirestoreTimestampObject } from "../../../service/thrift";
 import { Category, PlannedPayment } from "../budget.schema";
@@ -11,17 +12,36 @@ type BudgetItemProps = {
 };
 
 const BudgetItem = ({ item }: BudgetItemProps) => {
+	const { id } = useParams();
+	const [isLoading, setIsLoading] = useState<boolean>();
+	const [remainingAmount, setRemainingAmount] = useState<
+		Awaited<ReturnType<typeof budgetService.getRemainingCategoryAmount>>
+	>({ amountLeftCurrencyCat: 0, amountLeftPercentageCat: 0 });
+
+	useEffect(() => {
+		const getBudgetRemainingAmount = async () => {
+			if (isCategory(item)) {
+				setIsLoading(true);
+				const { amountLeftCurrencyCat, amountLeftPercentageCat } =
+					await budgetService.getRemainingCategoryAmount(id!, item.name);
+
+				setRemainingAmount({
+					amountLeftCurrencyCat: item.spendingLimit - amountLeftCurrencyCat,
+					amountLeftPercentageCat,
+				});
+				setIsLoading(false);
+			}
+		};
+		getBudgetRemainingAmount();
+	}, []);
+
 	const isCategory = (item: Category | PlannedPayment): item is Category => {
-		return "amountLeftCurrency" in item;
+		return "spendingLimit" in item;
 	};
 
-	const isPlannedPayment = (item: Category | PlannedPayment): item is PlannedPayment => {
-		return "startDate" in item;
+	const convertDate = (timestamp: FirestoreTimestampObject) => {
+		return new Date(timestamp.seconds * 1000).toLocaleDateString();
 	};
-
-	const dateConverted =
-		isPlannedPayment(item) &&
-		new Date((item.startDate as FirestoreTimestampObject).seconds * 1000);
 
 	return (
 		<Stack direction='row'>
@@ -31,22 +51,25 @@ const BudgetItem = ({ item }: BudgetItemProps) => {
 				<Stack direction='row' spacing={5} alignItems='center'>
 					{isCategory(item) ? (
 						<Fragment>
-							<ProgressBar
-								fillPercentage={60}
-								fillType={{
-									from: chipVariantHueList[item.name].primaryHue,
-									to: chipVariantHueList[item.name].secondaryHue,
-								}}
-							/>
+							{!isLoading && (
+								<ProgressBar
+									fillPercentage={remainingAmount.amountLeftPercentageCat}
+									fillType={{
+										from: chipVariantHueList[item.name].primaryHue,
+										to: chipVariantHueList[item.name].secondaryHue,
+									}}
+								/>
+							)}
 							<Typography variant='numberHeading'>
-								{item.amountLeftPercentage}%
+								{remainingAmount.amountLeftPercentageCat}%
 							</Typography>
 						</Fragment>
 					) : (
 						<Fragment>
 							<Typography variant='numberHeading'>RM {item.amount}</Typography>
 							<Typography variant='regularLight'>
-								every month starting {(dateConverted as Date).toLocaleDateString()}
+								every month starting &nbsp;
+								{convertDate(item.startDate as FirestoreTimestampObject)}
 							</Typography>
 						</Fragment>
 					)}
@@ -56,7 +79,7 @@ const BudgetItem = ({ item }: BudgetItemProps) => {
 						<Fragment>
 							<Typography>{item.name}</Typography>
 							<Typography variant='regularLight'>
-								RM {item.amountLeftCurrency}/{item.spendingLimit}
+								RM {remainingAmount.amountLeftCurrencyCat}/{item.spendingLimit}
 							</Typography>
 						</Fragment>
 					) : (

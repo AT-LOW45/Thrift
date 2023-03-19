@@ -1,19 +1,19 @@
 import { SelectChangeEvent } from "@mui/material";
 import { collection, getFirestore, onSnapshot, query, where } from "firebase/firestore";
 import { SyntheticEvent, useContext, useEffect, useState } from "react";
-import { AuthContext } from "../../context/AuthContext";
-import app from "../../firebaseConfig";
-import { BudgetPlan, budgetService } from "../budget";
-import { ChipOptions } from "../budget/components/BudgetChip";
-import { PersonalAccount } from "../payment_info/paymentInfo.schema";
+import { AuthContext } from "../../../context/AuthContext";
+import app from "../../../firebaseConfig";
+import { BudgetPlan, budgetService } from "../../budget";
+import { ChipOptions } from "../../budget/components/BudgetChip";
+import { PersonalAccount } from "../../payment_info/paymentInfo.schema";
 import {
 	Income,
 	IncomeSchemaDefaults,
 	labels,
 	Transaction,
-	TransactionSchemaDefaults
-} from "./transaction.schema";
-import transactionService from "./transaction.service";
+	TransactionSchemaDefaults,
+} from "../transaction.schema";
+import transactionService from "../transaction.service";
 
 const useCreateRecord = (toggleModal: () => void) => {
 	const [recordType, setRecordType] = useState<"income" | "transaction">("transaction");
@@ -41,9 +41,8 @@ const useCreateRecord = (toggleModal: () => void) => {
 	useEffect(() => {
 		const getPlans = async () => {
 			const budgetPlans = await budgetService.readAll();
-			// const personalAccounts = await paymentInfoService.getPersonalAccounts();
-			budgetPlans.length > 0 &&
-				setRecord((record) => ({ budgetPlanName: budgetPlans[0].name, ...record }));
+			// budgetPlans.length > 0 &&
+			// 	setRecord((record) => ({ budgetPlanName: budgetPlans[0].name, ...record }));
 			setBudgetPlans(budgetPlans);
 
 			const firestore = getFirestore(app);
@@ -104,8 +103,8 @@ const useCreateRecord = (toggleModal: () => void) => {
 	const changeRecordType = (event: SelectChangeEvent) => {
 		const selection = event.target.value as "income" | "transaction";
 		setRecordType(() => selection);
-		setBalance(undefined)
-		setBudgets([])
+		setBalance(undefined);
+		setBudgets([]);
 		setRecord(
 			selection === "income"
 				? IncomeSchemaDefaults.parse({})
@@ -218,9 +217,10 @@ const useCreateRecord = (toggleModal: () => void) => {
 	};
 
 	const handleSubmit = async () => {
-		const result = await transactionService.addDoc(record);
+		const result = await transactionService.addRecord(record);
 		if (typeof result === "string") {
-			setRecord(TransactionSchemaDefaults.parse({}))
+			setRecord(TransactionSchemaDefaults.parse({}));
+			setBudgets([])
 			toggleModal();
 		} else {
 			console.log("transaction error");

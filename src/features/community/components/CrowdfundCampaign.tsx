@@ -1,3 +1,4 @@
+import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
 import EmojiPeopleIcon from "@mui/icons-material/EmojiPeople";
 import {
 	Avatar,
@@ -13,54 +14,26 @@ import {
 	Typography,
 } from "@mui/material";
 import Grid2 from "@mui/material/Unstable_Grid2";
-import { Fragment, useContext, useState, useEffect } from "react";
+import { Fragment } from "react";
 import { Tray } from "../../../components";
-import { AuthContext } from "../../../context/AuthContext";
-import useRealtimeUpdate from "../../../hooks/useRealtimeUpdate";
 import { FirestoreTimestampObject } from "../../../service/thrift";
-import profileService from "../../profile/profile.service";
-import { CrowdfundSchemaDefaults, CrowdFund } from "../community.schema";
-import communityService from "../community.service";
+import useCrowdfundRetrieval from "../hooks/useCrowdfundRetrieval";
 import CrowdfundCreationDialog from "./CrowdfundCreationDialog";
 import CrowdfundDetailsDialog from "./CrowdfundDetailsDialog";
-import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
 
 const CrowdfundCampaign = () => {
-	const { firestoreCollection } = useRealtimeUpdate<CrowdFund>({
-		data: { collection: "Crowdfund" },
-	});
-	const { user } = useContext(AuthContext);
-	const [myCrowdfund, setMyCrowdfund] = useState<CrowdFund | null>(null);
-	const [selectedCrowdfund, setSelectedCrowdfund] = useState<CrowdFund>(
-		CrowdfundSchemaDefaults.parse({})
-	);
-
-	useEffect(() => {
-		const findCrowdfund = async () => {
-			const profile = await profileService.findProfile(user?.uid!);
-			const myCrowdfund = await communityService.findMyCrowdfund(profile.username);
-			setMyCrowdfund(myCrowdfund);
-		};
-		findCrowdfund();
-	}, []);
-
-	const [dialogOpen, setDialogOpen] = useState(false);
-	const [creationDialogOpen, setCreationDialogOpen] = useState(false);
-
-	const toggleDialog = () => setDialogOpen((open) => !open);
-	const toggleCreationDialog = () => setCreationDialogOpen((open) => !open);
-
-	const convertDate = (timestamp: FirestoreTimestampObject) => {
-		return new Date(timestamp.seconds * 1000).toLocaleDateString();
-	};
-
-	const findSelectedCrowdfund = (crowdfundId: string) => {
-		const crowdfund = firestoreCollection.find((fund) => fund.id === crowdfundId);
-		if (crowdfund) {
-			setSelectedCrowdfund(crowdfund);
-			toggleDialog();
-		}
-	};
+	const {
+		convertDate,
+		creationDialogOpen,
+		dialogOpen,
+		findSelectedCrowdfund,
+		firestoreCollection,
+		myCrowdfund,
+		selectedCrowdfund,
+		selectedCrowdfundCumulativeAmount,
+		toggleCreationDialog,
+		toggleDialog,
+	} = useCrowdfundRetrieval();
 
 	return (
 		<Fragment>
@@ -188,6 +161,7 @@ const CrowdfundCampaign = () => {
 				open={dialogOpen}
 				toggleModal={toggleDialog}
 				crowdfund={selectedCrowdfund}
+				crowdfundCumulativeAmount={selectedCrowdfundCumulativeAmount}
 			/>
 			<CrowdfundCreationDialog open={creationDialogOpen} toggleModal={toggleCreationDialog} />
 		</Fragment>

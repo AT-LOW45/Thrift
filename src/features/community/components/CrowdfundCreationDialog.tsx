@@ -22,7 +22,6 @@ const CrowdfundCreationDialog = ({ open, toggleModal }: CrowdfundCreationDialogP
 
 			const updated = { ...fund, [event.target.name]: value };
 			setIsValid(communityService.validateCrowdfund(updated));
-
 			return updated;
 		});
 	};

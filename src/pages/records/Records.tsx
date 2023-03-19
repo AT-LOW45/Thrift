@@ -1,77 +1,22 @@
-import { Box, Button, Stack, styled, Typography } from "@mui/material";
-import { DataGrid } from "@mui/x-data-grid";
-import { useState } from "react";
-import RecordDetailsDialog from "../../features/transaction/components/RecordDetailsDialog";
+import { Box, Button, Stack, Typography } from "@mui/material";
 import RecordCreationDialog from "../../features/transaction/components/RecordCreationDialog";
-import {
-	Income,
-	Transaction,
-	TransactionSchemaDefaults,
-} from "../../features/transaction/transaction.schema";
-import useRealtimeUpdate from "../../hooks/useRealtimeUpdate";
-import { FirestoreTimestampObject } from "../../service/thrift";
-import data_grid_configuration from "./data_grid_configuration";
+import RecordDetailsDialog from "../../features/transaction/components/RecordDetailsDialog";
+import useRecordRetrieval from "../../features/transaction/hooks/useRecordRetrieval";
 
 const Records = () => {
-	const { firestoreCollection } = useRealtimeUpdate<Transaction | Income>({
-		data: { collection: "Transaction" },
-	});
-	const [open, setOpen] = useState(false);
-	const [selectedRecord, setSelectedRecord] = useState<Transaction | Income>(
-		TransactionSchemaDefaults.parse({})
-	);
-	const [creationDialogOpen, setCreationDialogOpen] = useState(false);
-	const [errorInfoBar, setErrorInfoBarOpen] = useState(false);
-
-	const toggleDialog = () => setOpen((isOpen) => !isOpen);
-
-	const toggleCreationDialog = () => setCreationDialogOpen((isOpen) => !isOpen);
-
-	const openDialog = (recordId: string) => {
-		const record = firestoreCollection.find((rec) => rec.id === recordId);
-		if (record) {
-			setSelectedRecord(record);
-			toggleDialog();
-		}
-	};
-
-	const CustomDataGrid = styled(DataGrid)(() => ({
-		"&.MuiDataGrid-root .MuiDataGrid-cell:focus": {
-			outline: "none",
-		},
-	}));
-
-	const isTransaction = (record: Transaction | Income): record is Transaction =>
-		"category" in record;
-
-	const isIncome = (record: Transaction | Income): record is Income => "type" in record;
-
-	const { columnsIncome, columnsTransactions } = data_grid_configuration(
-		openDialog,
-		toggleDialog
-	);
-
-	const incomeRow = firestoreCollection.filter(isIncome).map((income, index) => ({
-		number: index + 1,
-		id: income.id,
-		type: income.type,
-		amount: income.amount,
-		transactionDate: new Date(
-			(income.transactionDate as FirestoreTimestampObject).seconds * 1000
-		).toLocaleDateString(),
-	}));
-
-	const transactionRow = firestoreCollection.filter(isTransaction).map((transaction, index) => ({
-		number: index + 1,
-		id: transaction.id,
-		category: transaction.category,
-		budgetPlan: transaction.budgetPlanName,
-		account: transaction.accountName,
-		amount: transaction.amount,
-		transactionDate: new Date(
-			(transaction.transactionDate as FirestoreTimestampObject).seconds * 1000
-		).toLocaleDateString(),
-	}));
+	const {
+		CustomDataGrid,
+		columnsIncome,
+		columnsTransactions,
+		creationDialogOpen,
+		incomeRow,
+		open,
+		setErrorInfoBarOpen,
+		selectedRecord,
+		toggleCreationDialog,
+		toggleDialog,
+		transactionRow,
+	} = useRecordRetrieval();
 
 	return (
 		<Box sx={{ pt: 2, px: 3 }}>

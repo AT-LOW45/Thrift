@@ -43,7 +43,6 @@ const AccountConfiguration = () => {
 			event.target.name === "balance" ? parseInt(event.target.value) : event.target.value;
 		handleGroupUpdate(index, event.target.name, targetValue, (result) => {
 			updateContext({ key: "paymentInfo", value: result }, (data) => {
-				console.log(data);
 				return [validateRegistrationFields(data)];
 			});
 		});

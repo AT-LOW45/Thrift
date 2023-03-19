@@ -3,6 +3,7 @@ import FastfoodOutlinedIcon from "@mui/icons-material/FastfoodOutlined";
 import LoopOutlinedIcon from "@mui/icons-material/LoopOutlined";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import GroupsIcon from "@mui/icons-material/Groups";
+import SchoolIcon from "@mui/icons-material/School";
 import { Box } from "@mui/material";
 import { z as zod } from "zod";
 
@@ -10,9 +11,10 @@ export const ChipOptionsSchema = zod.union([
 	zod.literal("groceries"),
 	zod.literal("entertainment"),
 	zod.literal("repeat"),
-	zod.literal("crowdfund")
+	zod.literal("crowdfund"),
+	zod.literal("education")
 ]);
-export type ChipOptions = zod.infer<typeof ChipOptionsSchema>
+export type ChipOptions = zod.infer<typeof ChipOptionsSchema>;
 type ChipVariant = {
 	primaryHue: string;
 	secondaryHue: string;
@@ -37,6 +39,11 @@ const variants: ChipVariantList = {
 		secondaryHue: "#FFC1AD",
 		icon: FastfoodOutlinedIcon,
 	},
+	education: {
+		primaryHue: "#65BE45",
+		secondaryHue: "#D5FD96",
+		icon: SchoolIcon,
+	},
 	repeat: {
 		primaryHue: "#0AA780",
 		secondaryHue: "#8CE4CF",
@@ -49,7 +56,9 @@ const variants: ChipVariantList = {
 	},
 };
 
-export const budgetTypes = Object.keys(variants);
+export const budgetTypes = Object.keys(variants).filter(
+	(val) => val !== "crowdfund" && val !== "repeat"
+);
 
 export const chipVariantHueList = Object.fromEntries(
 	Object.entries(variants).map(([type, properties]) => {

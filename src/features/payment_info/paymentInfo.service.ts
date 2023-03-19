@@ -2,6 +2,8 @@ import { getAuth } from "firebase/auth";
 import {
 	addDoc,
 	collection,
+	doc,
+	getDoc,
 	getDocs,
 	getFirestore,
 	orderBy,
@@ -39,8 +41,10 @@ const paymentInfoService: PaymentInfoServiceProvider = {
 		);
 		return paymentInfo;
 	},
-	find: function (id: string) {
-		throw new Error("Function not implemented.");
+	find: async function (id: string) {
+		const paymentInfoRef = doc(firestore, "PaymentInfo", id);
+		const paymentInfoDoc = await getDoc(paymentInfoRef);
+		return { id: paymentInfoDoc.id, ...paymentInfoDoc.data() } as PersonalAccount;
 	},
 	addDoc: async function (entity: PaymentInfo): Promise<string | false> {
 		const result =
