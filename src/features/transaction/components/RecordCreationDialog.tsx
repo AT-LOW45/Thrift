@@ -43,10 +43,7 @@ const RecordCreationDialog = ({ open, toggleModal, openInfoBar }: RecordCreation
 		budgets,
 		isValid,
 		testAutoFree,
-		setRecord,
 		setBudgets,
-		setAmountLeftCategory,
-		setBalance,
 	} = useCreateRecord(toggleModal);
 
 	return (
@@ -54,14 +51,10 @@ const RecordCreationDialog = ({ open, toggleModal, openInfoBar }: RecordCreation
 			actions={[
 				<Button key={1} onClick={handleSubmit} disabled={!isValid}>
 					Finish
-				</Button>,
+				</Button>
 			]}
 			open={open}
 			toggleModal={() => {
-				// setBudgets([]);
-				// setAmountLeftCategory(undefined);
-				// setBalance(undefined);
-				// setRecord(TransactionSchemaDefaults.parse({}));
 				setBudgets([]);
 				toggleModal();
 			}}

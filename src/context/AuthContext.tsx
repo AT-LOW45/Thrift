@@ -59,7 +59,6 @@ const Auth = ({ children }: AuthProps) => {
 
 			return finalResult;
 		} catch (exception) {
-			console.log("unable to register");
 			return false;
 		}
 	};

@@ -43,7 +43,7 @@ const useBudgetAddition = (availableBudgets: ChipOptions[], toggleModal: () => v
 						.reduce((prev, next) => prev + (isNaN(next) ? 0 : next), 0);
 
 				const result =
-					validateUniqueBudgets(groupResult) && validateCategory(groupResult) && left > 0;
+					validateUniqueBudgets(groupResult) && validateCategory(groupResult) && left >= 0;
 				setIsValid(result);
 
 				return left;

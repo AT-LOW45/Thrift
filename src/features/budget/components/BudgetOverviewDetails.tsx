@@ -46,7 +46,11 @@ const BudgetOverviewDetails = () => {
 					<TextField
 						name='spendingLimit'
 						variant='standard'
-						value={placeholderFormData.spendingLimit}
+						value={
+							isNaN(placeholderFormData.spendingLimit)
+								? ""
+								: placeholderFormData.spendingLimit
+						}
 						onChange={handleLimit}
 					/>
 				</EditableField.Edit>

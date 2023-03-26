@@ -1,11 +1,13 @@
+
+import { Box } from "@mui/material";
+import { z as zod } from "zod";
 import { SvgIconComponent } from "@mui/icons-material";
 import FastfoodOutlinedIcon from "@mui/icons-material/FastfoodOutlined";
 import LoopOutlinedIcon from "@mui/icons-material/LoopOutlined";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import GroupsIcon from "@mui/icons-material/Groups";
 import SchoolIcon from "@mui/icons-material/School";
-import { Box } from "@mui/material";
-import { z as zod } from "zod";
+import CelebrationIcon from "@mui/icons-material/Celebration";
 
 export const ChipOptionsSchema = zod.union([
 	zod.literal("groceries"),
@@ -37,7 +39,7 @@ const variants: ChipVariantList = {
 	entertainment: {
 		primaryHue: "#D12929",
 		secondaryHue: "#FFC1AD",
-		icon: FastfoodOutlinedIcon,
+		icon: CelebrationIcon,
 	},
 	education: {
 		primaryHue: "#65BE45",

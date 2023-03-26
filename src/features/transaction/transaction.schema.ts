@@ -3,10 +3,10 @@ import { FirestoreTimestampObjectSchema } from "../../service/thrift";
 import { ChipOptionsSchema } from "../budget/components/BudgetChip";
 
 const labelValues = ["Family", "Personal", "Business", "Daily Necessities"];
-export const labels = new Set(labelValues)
+export const labels = new Set(labelValues);
 // const ChipOptionsSchemaExtended = zod.union([ChipOptionsSchema])
-const IncomeTypeSchema = zod.union([zod.literal("job"), zod.literal("transfer")])
-export const incomeTypes = ["job", "transfer"]
+const IncomeTypeSchema = zod.union([zod.literal("job"), zod.literal("transfer")]);
+export const incomeTypes = ["job", "transfer"];
 
 export const TransactionSchema = zod.object({
 	id: zod.string().optional(),
@@ -18,7 +18,19 @@ export const TransactionSchema = zod.object({
 	accountId: zod.string(),
 	accountName: zod.string().optional(),
 	transactionDate: zod.union([zod.date(), FirestoreTimestampObjectSchema]),
-	labels: zod.set(zod.string())
+	labels: zod.set(zod.string()),
+});
+
+export const GroupTransactionSchema = TransactionSchema.omit({
+	budgetPlanId: true,
+	budgetPlanName: true,
+	accountId: true,
+	accountName: true,
+}).extend({
+	status: zod.boolean(),
+	madeBy: zod.string(),
+	groupName: zod.string().optional(),
+	groupId: zod.string(),
 });
 
 export const IncomeSchema = TransactionSchema.omit({
@@ -29,6 +41,15 @@ export const IncomeSchema = TransactionSchema.omit({
 	type: IncomeTypeSchema,
 });
 
+export const GroupIncomeSchema = IncomeSchema.omit({
+	accountId: true,
+	accountName: true,
+	type: true,
+}).extend({
+	groupId: zod.string(),
+	madeBy: zod.string(),
+	groupName: zod.string().optional(),
+});
 
 export const TransactionSchemaDefaults = zod.object({
 	id: zod.string().optional(),
@@ -43,7 +64,18 @@ export const TransactionSchemaDefaults = zod.object({
 	labels: zod.set(zod.string()).default(new Set()),
 });
 
-
+export const GroupTransactionSchemaDefaults = zod.object({
+	id: zod.string().optional(),
+	description: zod.string().optional().default("new transaction"),
+	category: ChipOptionsSchema.default("entertainment"),
+	amount: zod.number().default(0),
+	transactionDate: zod.union([zod.date(), FirestoreTimestampObjectSchema]).default(new Date()),
+	status: zod.boolean().default(true),
+	madeBy: zod.string().default(""),
+	labels: zod.set(zod.string()).default(new Set()),
+	groupId: zod.string().default(""),
+	groupName: zod.string().default("")
+});
 
 export const IncomeSchemaDefaults = TransactionSchemaDefaults.omit({
 	category: true,
@@ -53,5 +85,17 @@ export const IncomeSchemaDefaults = TransactionSchemaDefaults.omit({
 	type: IncomeTypeSchema.default("job"),
 });
 
+export const GroupIncomeSchemaDefaults = IncomeSchemaDefaults.omit({
+	accountId: true,
+	accountName: true,
+	type: true,
+}).extend({
+	groupId: zod.string().default(""),
+	madeBy: zod.string().default(""),
+	groupName: zod.string().default(""),
+});
+
 export type Transaction = zod.infer<typeof TransactionSchema>;
+export type GroupTransaction = zod.infer<typeof GroupTransactionSchema>;
+export type GroupIncome = zod.infer<typeof GroupIncomeSchema>;
 export type Income = zod.infer<typeof IncomeSchema>;

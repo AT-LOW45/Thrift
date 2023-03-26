@@ -7,6 +7,7 @@ import { NotFound, Overview } from "./pages";
 import BudgetPlanDetails from "./pages/budget/BudgetPlanDetails";
 import Budgets from "./pages/budget/Budgets";
 import Community from "./pages/community/Community";
+import GroupPlanning from "./pages/group/GroupPlanning";
 import Login from "./pages/Login";
 import Transactions from "./pages/records/Records";
 import AccountConfiguration from "./pages/register/AccountConfiguration";
@@ -17,19 +18,17 @@ function App() {
 	// authenticate user before routing
 	const [isLoggedIn, setIsLoggedIn] = useState(false);
 	const { user } = useContext(AuthContext);
-	const navigate = useNavigate()
+	const navigate = useNavigate();
 
 	useEffect(() => {
 		const changeRoute = () => {
-			if(user === null) {
-				setIsLoggedIn(false)
-				navigate("/")
+			if (user === null) {
+				setIsLoggedIn(false);
+				navigate("/");
 			} else {
-				setIsLoggedIn(true)
-				navigate("/overview")
+				setIsLoggedIn(true);
+				navigate("/overview");
 			}
-	
-			
 		};
 		changeRoute();
 	}, [user]);
@@ -39,11 +38,12 @@ function App() {
 			{isLoggedIn ? (
 				<Fragment>
 					<Route path='/' element={<DashboardLayout />}>
-						<Route path="/overview" element={<Overview />} />
+						<Route path='/overview' element={<Overview />} />
 						<Route path='/budgets' element={<Budgets />} />
 						<Route path='/budgets/:id' element={<BudgetPlanDetails />} />
 						<Route path='/transactions' element={<Transactions />} />
 						<Route path='/community' element={<Community />} />
+						<Route path='/group-planning' element={<GroupPlanning />} />
 					</Route>
 					<Route path='*' element={<NotFound />} />
 				</Fragment>

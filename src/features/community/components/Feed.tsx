@@ -19,8 +19,6 @@ const Feed = () => {
 	const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
 	const [post, setPost] = useState<Post>(PostSchemaDefaults.parse({}));
 
-	console.log(firestoreCollection)
-
 	const toggleDialog = () => setDetailsDialogOpen((open) => !open);
 
 	const findPost = (postId: string | undefined) => {

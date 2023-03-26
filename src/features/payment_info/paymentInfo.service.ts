@@ -14,6 +14,7 @@ import {
 import app from "../../firebaseConfig";
 import { ThriftServiceProvider } from "../../service/thrift";
 import {
+	GroupAccount,
 	GroupAccountSchema,
 	PaymentInfo,
 	PersonalAccount,
@@ -27,6 +28,12 @@ interface PaymentInfoServiceProvider extends ThriftServiceProvider<PaymentInfo> 
 		transactionType: "credit" | "debit",
 		userUid: string,
 		accountName: string
+	): Promise<boolean>;
+	getGroupAccount(groupId: string): Promise<GroupAccount>;
+	updateGroupAmount(
+		amount: number,
+		transactionType: "credit" | "debit",
+		groupId: string
 	): Promise<boolean>;
 }
 
@@ -103,6 +110,41 @@ const paymentInfoService: PaymentInfoServiceProvider = {
 			if (isBalanceEnough) {
 				await updateDoc(paymentInfoDoc.ref, {
 					balance: paymentInfo.balance - amount,
+				});
+				return true;
+			} else {
+				return false;
+			}
+		}
+	},
+	getGroupAccount: async function (groupId: string) {
+		const accountRef = collection(firestore, "PaymentInfo");
+		const accountQuery = query(accountRef, where("groupId", "==", groupId));
+		const accountDoc = (await getDocs(accountQuery)).docs[0];
+		return { id: accountDoc.id, ...accountDoc.data() } as GroupAccount;
+	},
+	updateGroupAmount: async function (
+		amount: number,
+		transactionType: "credit" | "debit",
+		groupId: string
+	) {
+		const paymentInfoRef = collection(firestore, "PaymentInfo");
+		const paymentInfoQuery = query(paymentInfoRef, where("groupId", "==", groupId));
+
+		const paymentInfoDoc = (await getDocs(paymentInfoQuery)).docs[0];
+		const groupAccount = paymentInfoDoc.data() as GroupAccount;
+
+		if (transactionType === "credit") {
+			await updateDoc(paymentInfoDoc.ref, {
+				balance: groupAccount.balance + amount,
+			});
+			return true;
+		} else {
+			const isBalanceEnough = groupAccount.balance - amount >= 0;
+
+			if (isBalanceEnough) {
+				await updateDoc(paymentInfoDoc.ref, {
+					balance: groupAccount.balance - amount,
 				});
 				return true;
 			} else {

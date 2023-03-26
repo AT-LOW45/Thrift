@@ -1,5 +1,4 @@
 import { z as zod } from "zod";
-import { ProfileSchema } from "../profile/profile.schema";
 
 const AccountTypeSchema = zod.union([zod.literal("cash"), zod.literal("savings account")]);
 export const accountTypes = ["cash", "savings account"];
@@ -17,7 +16,7 @@ export const PersonalAccountSchema = PaymentInfoSchema.extend({
 
 export const GroupAccountSchema = PaymentInfoSchema.extend({
 	groupId: zod.string(),
-	members: zod.array(ProfileSchema),
+	maintainers: zod.set(zod.string()),
 });
 
 export const PersonalAccountSchemaDefaults = zod.object({
@@ -26,6 +25,14 @@ export const PersonalAccountSchemaDefaults = zod.object({
 	balance: zod.number().default(0),
 	type: AccountTypeSchema.default("cash"),
 	userUid: zod.string().default(""),
+});
+
+export const GroupAccountSchemaDefaults = zod.object({
+	id: zod.string().optional(),
+	name: zod.string().default(""),
+	balance: zod.number().default(0),
+	groupId: zod.string().default(""),
+	maintainers: zod.set(zod.string()).default(new Set()),
 });
 
 export type PaymentInfo = zod.infer<typeof PaymentInfoSchema>;
