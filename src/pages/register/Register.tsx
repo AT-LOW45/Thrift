@@ -1,20 +1,26 @@
 import { Box, Button, Stack } from "@mui/material";
 import { Fragment, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { z as zod } from "zod";
+import { ZodError, z as zod } from "zod";
 import { AuthContext } from "../../context/AuthContext";
 import { useMultiStepContainer } from "../../context/MultiStepContext";
 import {
+	PersonalAccount,
 	PersonalAccountSchema,
 	PersonalAccountSchemaDefaults,
 } from "../../features/payment_info/paymentInfo.schema";
 import { MarketAuxIndustriesSchema } from "../../service/marketaux";
 
 export const RegisterSchema = zod.object({
-	email: zod.string().email(),
-	username: zod.string().min(5).max(20),
-	password: zod.string().min(8),
-	confirmPassword: zod.string().min(8),
+	email: zod.string().email({ message: "Incorrect email format" }),
+	username: zod
+		.string()
+		.min(5, { message: "Your username must have at least 5 characters" })
+		.max(20, { message: "Your username cannot exceed 20 characters" }),
+	password: zod.string().min(8, { message: "Your password must have a minimum of 8 characters" }),
+	confirmPassword: zod
+		.string()
+		.min(8, { message: "Your password must have a minimum of 8 characters" }),
 	interest: MarketAuxIndustriesSchema,
 	paymentInfo: zod.array(PersonalAccountSchema),
 });
@@ -30,14 +36,26 @@ export const RegisterSchemaDefaults = zod.object({
 
 export type Registration = zod.infer<typeof RegisterSchema>;
 
-export const validateRegistrationFields = (registerInfo: Registration) => {
+export const validateRegistrationFields = (
+	registerInfo: Registration
+): true | ZodError<PersonalAccount[]>["formErrors"]["fieldErrors"] => {
 	const result = RegisterSchema.shape.paymentInfo.safeParse(registerInfo.paymentInfo);
-	return result.success;
+	if (result.success === false) {
+		return result.error.formErrors.fieldErrors;
+	} else {
+		return result.success;
+	}
 };
 
-export const validateProfileFields = (profileInfo: Registration) => {
+export const validateProfileFields = (
+	profileInfo: Registration
+): true | ZodError<Registration>["formErrors"]["fieldErrors"] => {
 	const result = RegisterSchema.omit({ paymentInfo: true }).safeParse(profileInfo);
-	return result.success;
+	if (result.success === false) {
+		return result.error.formErrors.fieldErrors;
+	} else {
+		return result.success;
+	}
 };
 
 const Register = () => {
@@ -47,8 +65,9 @@ const Register = () => {
 	const { signUpWithEmailAndPassword } = useContext(AuthContext);
 
 	const signUp = () => {
+		console.log(formData);
 		signUpWithEmailAndPassword(formData)
-			.then((res) => navigate("/overview"))
+			.then((res) => (res === true ? navigate("/overview") : console.log(res)))
 			.catch(() => console.log("something went wrong"));
 	};
 

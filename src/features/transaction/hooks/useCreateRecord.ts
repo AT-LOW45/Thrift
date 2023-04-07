@@ -14,6 +14,7 @@ import {
 	TransactionSchemaDefaults,
 } from "../transaction.schema";
 import transactionService from "../transaction.service";
+import { ZodError } from "zod";
 
 const useCreateRecord = (toggleModal: () => void) => {
 	const [recordType, setRecordType] = useState<"income" | "transaction">("transaction");
@@ -26,16 +27,24 @@ const useCreateRecord = (toggleModal: () => void) => {
 	const [balance, setBalance] = useState<number>();
 	const [isValid, setIsValid] = useState(false);
 	const [budgets, setBudgets] = useState<{ bud: ChipOptions; amount: number }[]>([]);
+	const [errorMessages, setErrorMessages] =
+		useState<ZodError<Transaction | Income>["formErrors"]["fieldErrors"]>();
 	const { user } = useContext(AuthContext);
 
 	const validateRecord = (record: Transaction | Income): boolean => {
-		const isRecordFieldsValid = transactionService.validateRecordDetails(record);
+		const result = transactionService.validateRecordDetails(record);
 		let isBalanceEnough: boolean;
 		isBalanceEnough =
 			recordType === "income"
 				? true
 				: record.amount < balance! && record.amount < amountLeftCategory!;
-		return isRecordFieldsValid && isBalanceEnough;
+		if (result === true) {
+			setErrorMessages(undefined);
+			return true && isBalanceEnough;
+		} else {
+			setErrorMessages(result);
+			return false && isBalanceEnough;
+		}
 	};
 
 	useEffect(() => {
@@ -220,7 +229,7 @@ const useCreateRecord = (toggleModal: () => void) => {
 		const result = await transactionService.addRecord(record);
 		if (typeof result === "string") {
 			setRecord(TransactionSchemaDefaults.parse({}));
-			setBudgets([])
+			setBudgets([]);
 			toggleModal();
 		} else {
 			console.log("transaction error");
@@ -242,6 +251,7 @@ const useCreateRecord = (toggleModal: () => void) => {
 		handleAccountChange,
 		balance,
 		budgets,
+		errorMessages,
 		addLabel,
 		removeLabel,
 		changeRecordType,

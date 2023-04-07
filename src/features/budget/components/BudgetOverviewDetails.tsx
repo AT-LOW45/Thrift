@@ -11,6 +11,7 @@ const BudgetOverviewDetails = () => {
 		handleSliderChange,
 		placeholderFormData,
 		handleLimit,
+		errorMessages,
 		handleNote,
 	} = useBudgetOverviewEdit();
 
@@ -52,6 +53,7 @@ const BudgetOverviewDetails = () => {
 								: placeholderFormData.spendingLimit
 						}
 						onChange={handleLimit}
+						helperText={errorMessages?.spendingLimit ? errorMessages.spendingLimit : ""}
 					/>
 				</EditableField.Edit>
 			</EditableField>
@@ -97,7 +99,7 @@ const BudgetOverviewDetails = () => {
 							value={placeholderFormData.note}
 							onChange={handleNote}
 							multiline
-							helperText='Add a short memo to describe this budget plan'
+							helperText={errorMessages?.note ? errorMessages?.note : ""}
 							rows={4}
 						/>
 					</EditableField.Edit>

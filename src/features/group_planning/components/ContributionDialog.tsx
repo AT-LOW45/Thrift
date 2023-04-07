@@ -1,11 +1,23 @@
-import { Autocomplete, Button, Chip, FormHelperText, Stack, TextField } from "@mui/material";
+import {
+	Autocomplete,
+	Button,
+	Chip,
+	FormControl,
+	FormHelperText,
+	InputLabel,
+	MenuItem,
+	Select,
+	Stack,
+	TextField,
+	Typography,
+} from "@mui/material";
 import { Fragment } from "react";
 import FormDialog, { FormDialogProps } from "../../../components/form/FormDialog";
 import { Group } from "../group.schema";
 import useGroupContribution from "../hooks/useGroupContribution";
 
 type ContributionDialogProps = Pick<FormDialogProps, "open" | "toggleModal"> & {
-    group: Group
+	group: Group;
 };
 
 const ContributionDialog = ({ open, toggleModal, group }: ContributionDialogProps) => {
@@ -20,7 +32,11 @@ const ContributionDialog = ({ open, toggleModal, group }: ContributionDialogProp
 		testAutoFree,
 		isValid,
 		contribute,
-	} = useGroupContribution(group.id!, toggleModal);
+		handleAccountChange,
+		errorMessages,
+		personalAccounts,
+		selectedAccount,
+	} = useGroupContribution(group, toggleModal);
 
 	return (
 		<FormDialog
@@ -31,8 +47,36 @@ const ContributionDialog = ({ open, toggleModal, group }: ContributionDialogProp
 			]}
 			open={open}
 			toggleModal={toggleModal}
+			title="Contribute to your Group"
 		>
 			<Stack spacing={3}>
+				<Stack direction='row' spacing={2} alignItems='center'>
+					<FormControl variant='standard' sx={{ width: "50%" }}>
+						<InputLabel id='account'>Account</InputLabel>
+						<Select
+							labelId='account'
+							value={selectedAccount ? selectedAccount.name : ""}
+							name='accountName'
+							onChange={handleAccountChange}
+							label='Account'
+						>
+							{personalAccounts.map((acc) => (
+								<MenuItem value={acc.name} key={acc.id}>
+									{acc.name}
+								</MenuItem>
+							))}
+						</Select>
+						<FormHelperText>
+							{selectedAccount === undefined
+								? "You need to select a personal account to contribute to the group account"
+								: ""}
+						</FormHelperText>
+					</FormControl>
+					<Typography variant='numberHeading'>
+						Balance: RM {selectedAccount ? selectedAccount.balance : "--"}
+					</Typography>
+				</Stack>
+
 				<TextField
 					type='number'
 					value={isNaN(groupIncome.amount) ? "" : groupIncome.amount}
@@ -41,6 +85,7 @@ const ContributionDialog = ({ open, toggleModal, group }: ContributionDialogProp
 					onChange={handleChange}
 					sx={{ width: "50%" }}
 					label='Amount'
+					helperText={errorMessages?.amount ? errorMessages.amount[0] : ""}
 				/>
 				<TextField
 					multiline

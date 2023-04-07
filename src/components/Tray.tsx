@@ -29,7 +29,7 @@ const Tray = ({ title, colSpan, children, actions, transparent }: TrayProps) => 
 		>
 			<TrayCard className='Tray'>
 				<CardContent>
-					<Typography variant='regularSubHeading'>{title}</Typography>
+					<Typography component="p" pb={2} variant='regularSubHeading'>{title}</Typography>
 					{children}
 				</CardContent>
 				{actions !== undefined && (

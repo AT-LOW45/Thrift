@@ -5,8 +5,8 @@ import {
 	CategoryScale,
 	Chart as ChartJS,
 	Legend,
-	LinearScale,
 	LineElement,
+	LinearScale,
 	PointElement,
 	Title,
 	Tooltip,
@@ -20,26 +20,34 @@ import { BudgetPlan } from "../../features/budget/budget.schema";
 import BudgetCategories from "../../features/budget/components/BudgetCategories";
 import BudgetOverviewDetails from "../../features/budget/components/BudgetOverviewDetails";
 import BudgetPlanTitle from "../../features/budget/components/BudgetPlanTitle";
+import useExpensesByCategoryData from "../../features/transaction/hooks/useExpensesByCategoryData";
+import useRecordChartSummary from "../../features/transaction/hooks/useRecordChartSummary";
 import useRealtimeUpdate from "../../hooks/useRealtimeUpdate";
-import { barData, barOptions, data, options } from "./mock_chart_data";
+import ConfirmCloseBudgetDialog from "../../features/budget/components/ConfirmCloseBudgetDialog";
+
+ChartJS.register(
+	CategoryScale,
+	LinearScale,
+	PointElement,
+	LineElement,
+	Title,
+	Tooltip,
+	Legend,
+	BarElement
+);
 
 const BudgetPlanDetails = () => {
-	ChartJS.register(
-		CategoryScale,
-		LinearScale,
-		PointElement,
-		LineElement,
-		Title,
-		Tooltip,
-		Legend,
-		BarElement
-	);
-
 	const [value, setValue] = useState(0);
 	const { id } = useParams();
 	const { firestoreDoc, isLoading } = useRealtimeUpdate<BudgetPlan>({
 		data: { collection: "BudgetPlan", id },
 	});
+	const { areRecordsLoading, recentTransactionsData, recentTransactionsOptions } =
+		useRecordChartSummary(id);
+	const { barData, barOptions, isCategoryDataLoading } = useExpensesByCategoryData(id!);
+	const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
+
+	const toggleConfirmationDialog = () => setConfirmationDialogOpen((open) => !open);
 
 	const handleChange = (event: React.SyntheticEvent, newValue: number) => {
 		setValue(newValue);
@@ -69,10 +77,21 @@ const BudgetPlanDetails = () => {
 					)}
 
 					<Tray title='Expense Trend'>
-						<Line options={options} data={data} />
+						{!areRecordsLoading ? (
+							<Line
+								options={recentTransactionsOptions}
+								data={recentTransactionsData}
+							/>
+						) : (
+							<Typography></Typography>
+						)}
 					</Tray>
 					<Tray title='Total Expenses by Budget'>
-						<Bar options={barOptions} data={barData} />
+						{!isCategoryDataLoading ? (
+							<Bar options={barOptions} data={barData} />
+						) : (
+							<Typography>No data</Typography>
+						)}
 					</Tray>
 					<Button
 						variant='contained'
@@ -82,6 +101,7 @@ const BudgetPlanDetails = () => {
 							width: "fit-content",
 							margin: "3rem auto 1.5rem auto",
 						}}
+						onClick={toggleConfirmationDialog}
 					>
 						Close Budget Plan
 					</Button>
@@ -97,6 +117,11 @@ const BudgetPlanDetails = () => {
 					</Editable>
 				)}
 			</TabPanel>
+			<ConfirmCloseBudgetDialog
+				open={confirmationDialogOpen}
+				toggleModal={toggleConfirmationDialog}
+				budgetPlanId={id!}
+			/>
 		</Box>
 	);
 };

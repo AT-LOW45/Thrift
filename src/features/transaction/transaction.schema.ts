@@ -4,18 +4,27 @@ import { ChipOptionsSchema } from "../budget/components/BudgetChip";
 
 const labelValues = ["Family", "Personal", "Business", "Daily Necessities"];
 export const labels = new Set(labelValues);
-// const ChipOptionsSchemaExtended = zod.union([ChipOptionsSchema])
-const IncomeTypeSchema = zod.union([zod.literal("job"), zod.literal("transfer")]);
+const IncomeTypeSchema = zod.union([zod.literal("job"), zod.literal("transfer")], {
+	invalid_type_error: "You need to specify a source for this income",
+});
 export const incomeTypes = ["job", "transfer"];
 
 export const TransactionSchema = zod.object({
 	id: zod.string().optional(),
 	description: zod.string().optional(),
 	category: ChipOptionsSchema,
-	amount: zod.number().nonnegative().gt(0),
-	budgetPlanId: zod.string().default("N/A"),
+	amount: zod
+		.number()
+		.nonnegative({ message: "You can't create a record with a negative amount" })
+		.gt(0, { message: "You can't create a record of RM 0" }),
+	budgetPlanId: zod
+		.string()
+		.min(1, { message: "This transaction needs to be recorded in a budget plan" })
+		.default("N/A"),
 	budgetPlanName: zod.string().optional(),
-	accountId: zod.string(),
+	accountId: zod
+		.string()
+		.min(1, { message: "You need to select an account to create the record" }),
 	accountName: zod.string().optional(),
 	transactionDate: zod.union([zod.date(), FirestoreTimestampObjectSchema]),
 	labels: zod.set(zod.string()),
@@ -74,7 +83,7 @@ export const GroupTransactionSchemaDefaults = zod.object({
 	madeBy: zod.string().default(""),
 	labels: zod.set(zod.string()).default(new Set()),
 	groupId: zod.string().default(""),
-	groupName: zod.string().default("")
+	groupName: zod.string().default(""),
 });
 
 export const IncomeSchemaDefaults = TransactionSchemaDefaults.omit({

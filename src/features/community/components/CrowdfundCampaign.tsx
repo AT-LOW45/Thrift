@@ -5,11 +5,17 @@ import {
 	AvatarGroup,
 	Box,
 	Button,
+	Dialog,
+	DialogActions,
+	DialogContent,
+	DialogContentText,
+	DialogTitle,
 	Divider,
 	List,
 	ListItem,
 	ListItemButton,
 	ListItemText,
+	Portal,
 	Stack,
 	Typography,
 } from "@mui/material";
@@ -32,7 +38,10 @@ const CrowdfundCampaign = () => {
 		selectedCrowdfund,
 		selectedCrowdfundCumulativeAmount,
 		toggleCreationDialog,
+		toggleConfirmCloseDialog,
+		crowdfundCloseConfirmationOpen,
 		toggleDialog,
+		closeCrowdfund,
 	} = useCrowdfundRetrieval();
 
 	return (
@@ -48,7 +57,11 @@ const CrowdfundCampaign = () => {
 								Ending on: &nbsp;
 								{convertDate(myCrowdfund.endDate as FirestoreTimestampObject)}
 							</Typography>
-							<Button color='tertiary' endIcon={<AssignmentTurnedInIcon />}>
+							<Button
+								color='tertiary'
+								endIcon={<AssignmentTurnedInIcon />}
+								onClick={toggleConfirmCloseDialog}
+							>
 								Close Crowdfund
 							</Button>
 						</Stack>
@@ -98,14 +111,16 @@ const CrowdfundCampaign = () => {
 											alignItems='center'
 										>
 											<Stack direction='row' spacing={2}>
-												<Typography variant='regularSubHeading'>
+												<Typography fontSize='1.3rem'>
 													{crowdfund.name}
 												</Typography>
 												<Box
 													display='grid'
 													sx={{
 														placeContent: "center",
-														backgroundColor: "green",
+														backgroundColor: crowdfund.isActive
+															? "green"
+															: "red",
 														color: "white",
 														px: 2,
 														paddingTop: "1px",
@@ -164,6 +179,34 @@ const CrowdfundCampaign = () => {
 				crowdfundCumulativeAmount={selectedCrowdfundCumulativeAmount}
 			/>
 			<CrowdfundCreationDialog open={creationDialogOpen} toggleModal={toggleCreationDialog} />
+			<Portal>
+				<Dialog
+					open={crowdfundCloseConfirmationOpen}
+					onClose={toggleConfirmCloseDialog}
+					aria-labelledby='alert-dialog-title'
+					aria-describedby='alert-dialog-description'
+				>
+					<DialogTitle>Close This Crowdfund?</DialogTitle>
+					<DialogContent>
+						<DialogContentText>
+							Closing this crowdfund will mean the following:
+						</DialogContentText>
+						<Box component='ul' sx={{ px: 5 }}>
+							<Typography component='li' color='gray'>
+								People can no longer contribute to your crowdfund
+							</Typography>
+							<Typography component='li' color='gray'></Typography>
+							<Typography component='li' color='gray'>
+								Lorem ipsum dolor sit amet consectetur adipisicing elit.
+							</Typography>
+						</Box>
+					</DialogContent>
+					<DialogActions>
+						<Button onClick={toggleConfirmCloseDialog}>Disagree</Button>
+						<Button onClick={() => closeCrowdfund(myCrowdfund!.id!)}>Agree</Button>
+					</DialogActions>
+				</Dialog>
+			</Portal>
 		</Fragment>
 	);
 };

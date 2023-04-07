@@ -10,9 +10,10 @@ export type FormDialogProps = {
 	toggleModal(): void;
 	children: JSX.Element[] | JSX.Element;
 	actions: JSX.Element[]
+	title: string
 };
 
-const FormDialog = ({ open, toggleModal, children, actions }: FormDialogProps) => {
+const FormDialog = ({ open, toggleModal, children, actions, title }: FormDialogProps) => {
 
 	const submit = (event: FormEvent) => {
 		event.preventDefault()
@@ -22,7 +23,7 @@ const FormDialog = ({ open, toggleModal, children, actions }: FormDialogProps) =
 		<Portal>
 			<Dialog open={open} onClose={toggleModal} fullWidth={true} maxWidth='lg'>
 				<form method='POST' onSubmit={submit}>
-					<DialogTitle>Subscribe</DialogTitle>
+					<DialogTitle>{title}</DialogTitle>
 					<DialogContent dividers>{children}</DialogContent>
 					<DialogActions>
 						{actions}

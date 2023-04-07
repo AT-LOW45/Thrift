@@ -18,7 +18,7 @@ const PostDetailsDialog = ({ open, toggleModal, post }: PostDetailsDialogProps) 
 						{post.mediaAttachment && (
 							<img src={post.mediaAttachment} style={{ height: "auto", maxWidth: "50%" }} />
 						)}
-						<Box component='pre' sx={{ p: 3 }}>
+						<Box sx={{ p: 3 }}>
 							<Typography textAlign='justify'>{post.body}</Typography>
 						</Box>
 					</Stack>

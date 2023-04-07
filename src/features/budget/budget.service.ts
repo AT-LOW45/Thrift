@@ -1,4 +1,5 @@
 import { getAuth } from "firebase/auth";
+import { ZodError } from "zod";
 import {
 	addDoc,
 	arrayUnion,
@@ -25,9 +26,9 @@ import {
 import { ChipOptions } from "./components/BudgetChip";
 
 interface BudgetServiceProvider extends ThriftServiceProvider<BudgetPlan> {
-	validateCategory(category: Category): boolean;
-	validatePlanPartial(data: BudgetPlan): boolean;
-	validatePlannedPayment(data: PlannedPayment): boolean;
+	validateCategory(category: Category): true | ZodError<Category>["formErrors"]["fieldErrors"];
+	validatePlanPartial(data: BudgetPlan): true | ZodError<BudgetPlan>["formErrors"]["fieldErrors"];
+	validatePlannedPayment(data: PlannedPayment): true | ZodError["formErrors"]["fieldErrors"];
 	validateLimit(data: BudgetPlan): boolean;
 	getRemainingOverallAmount(
 		id: string
@@ -38,6 +39,8 @@ interface BudgetServiceProvider extends ThriftServiceProvider<BudgetPlan> {
 	): Promise<{ amountLeftCurrencyCat: number; amountLeftPercentageCat: number }>;
 	updateBudgetPlan(budgetPlan: BudgetPlan, fields: Partial<BudgetPlan>): Promise<boolean>;
 	addNewBudgets(budgetPlanId: string, newItems: Category[]): Promise<boolean>;
+	findMyPlans(): Promise<BudgetPlan[]>;
+	closeBudgetPlan(budgetPlanId: string): Promise<void>;
 }
 
 const firestore = getFirestore(app);
@@ -46,7 +49,11 @@ const auth = getAuth(app);
 const budgetService: BudgetServiceProvider = {
 	readAll: async function (): Promise<BudgetPlan[]> {
 		const budgetPlanRef = collection(firestore, "BudgetPlan");
-		const budgetPlanQuery = query(budgetPlanRef, where("userUid", "==", auth.currentUser?.uid));
+		const budgetPlanQuery = query(
+			budgetPlanRef,
+			where("userUid", "==", auth.currentUser?.uid),
+			where("isActive", "==", true)
+		);
 		const budgetPlans = (await getDocs(budgetPlanQuery)).docs.map(
 			(snapshot) => ({ id: snapshot.id, ...snapshot.data() } as BudgetPlan)
 		);
@@ -75,7 +82,21 @@ const budgetService: BudgetServiceProvider = {
 	deleteDoc: async () => {},
 	validateCategory: function (category: Category) {
 		const result = CategorySchema.safeParse(category);
-		return result.success;
+
+		if (result.success === true) {
+			return true;
+		} else {
+			return result.error.formErrors.fieldErrors;
+		}
+	},
+	validatePlannedPayment: function (planned: PlannedPayment) {
+		const result = PlannedPaymentSchema.safeParse(planned);
+
+		if (result.success === true) {
+			return true;
+		} else {
+			return result.error.formErrors.fieldErrors;
+		}
 	},
 	validatePlanPartial: function (data: BudgetPlan) {
 		const PartialBudgetPlanSchema = BudgetPlanSchema.pick({
@@ -84,13 +105,16 @@ const budgetService: BudgetServiceProvider = {
 			renewalTerm: true,
 			spendingLimit: true,
 		});
+
 		const result = PartialBudgetPlanSchema.safeParse(data);
-		return result.success;
+
+		if (result.success === true) {
+			return true;
+		} else {
+			return result.error.formErrors.fieldErrors;
+		}
 	},
-	validatePlannedPayment: function (planned: PlannedPayment) {
-		const result = PlannedPaymentSchema.safeParse(planned);
-		return result.success;
-	},
+
 	validateLimit: function (plan: BudgetPlan) {
 		return (
 			plan.categories[0].spendingLimit + plan.plannedPayments![0].amount < plan.spendingLimit
@@ -192,6 +216,20 @@ const budgetService: BudgetServiceProvider = {
 		} else {
 			return false;
 		}
+	},
+	findMyPlans: async function () {
+		const budgetPlanRef = collection(firestore, "BudgetPlan");
+		const budgetPlanQuery = query(budgetPlanRef, where("userUid", "==", auth.currentUser?.uid));
+		return (await getDocs(budgetPlanQuery)).docs.map(
+			(plan) => ({ id: plan.id, ...plan.data() } as BudgetPlan)
+		);
+	},
+	closeBudgetPlan: async function (budgetPlanId: string) {
+		const budgetPlanRef = doc(firestore, "BudgetPlan", budgetPlanId);
+
+		await updateDoc(budgetPlanRef, {
+			isActive: false,
+		});
 	},
 };
 

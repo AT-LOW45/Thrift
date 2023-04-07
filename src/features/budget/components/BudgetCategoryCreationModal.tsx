@@ -50,6 +50,7 @@ const BudgetCategoryCreationModal = ({
 				setAmountLeft(0);
 				toggleModal();
 			}}
+			title="Budget Category Creation"
 		>
 			<Stack sx={{ py: 5, px: 10 }}>
 				<Typography textAlign='center'>You can add new budgets here</Typography>

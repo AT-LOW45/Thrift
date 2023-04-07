@@ -18,9 +18,15 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import dayjs from "dayjs";
 import { Dispatch, Fragment, SetStateAction, useEffect, useState } from "react";
 import { useMultiStep } from "../../../../context/MultiStepContext";
-import { BudgetPlan, PlannedPaymentSchemaDefaults } from "../../budget.schema";
+import {
+	BudgetPlan,
+	Category,
+	PlannedPayment,
+	PlannedPaymentSchemaDefaults,
+} from "../../budget.schema";
 import budgetService from "../../budget.service";
 import { budgetTypes } from "../BudgetChip";
+import { ZodError } from "zod";
 
 type BudgetSetupProps = {
 	enabled: boolean;
@@ -29,12 +35,41 @@ type BudgetSetupProps = {
 
 const BudgetSetup = ({ enabled, setEnabled }: BudgetSetupProps) => {
 	const { formData, updateContext, currentStepIndex } = useMultiStep<BudgetPlan>();
-
 	const [amountLeft, setAmountLeft] = useState(formData.spendingLimit);
+	const [catErrorMessage, setCatErrorMessage] =
+		useState<ZodError<Category>["formErrors"]["fieldErrors"]>();
+	const [plannedErrorMessage, setPlannedErrorMessage] =
+		useState<ZodError<PlannedPayment>["formErrors"]["fieldErrors"]>();
 
 	const validators = (plan: BudgetPlan) => [
-		budgetService.validateCategory(plan.categories[0]),
-		enabled === true ? budgetService.validatePlannedPayment(plan.plannedPayments![0]) : true,
+		(() => {
+			const catResult = budgetService.validateCategory(plan.categories[0]);
+
+			if (catResult === true) {
+				setCatErrorMessage(undefined);
+				return true;
+			} else {
+				setCatErrorMessage(catResult);
+				return false;
+			}
+		})(),
+		(() => {
+			if (enabled === true) {
+				const plannedResult = budgetService.validatePlannedPayment(
+					plan.plannedPayments![0]
+				);
+
+				if (plannedResult === true) {
+					setPlannedErrorMessage(undefined);
+					return true;
+				} else {
+					setPlannedErrorMessage(plannedResult);
+					return false;
+				}
+			} else {
+				return true;
+			}
+		})(),
 		budgetService.validateLimit(plan),
 	];
 
@@ -107,6 +142,7 @@ const BudgetSetup = ({ enabled, setEnabled }: BudgetSetupProps) => {
 			>
 				RM {amountLeft}
 			</Typography>
+
 			<Stack direction='row' spacing={2} sx={{ width: "60%" }} alignSelf='center'>
 				<FormControl sx={{ flexBasis: "50%" }} variant='standard'>
 					<InputLabel id='demo-simple-select-standard-label'>Budget</InputLabel>
@@ -137,16 +173,24 @@ const BudgetSetup = ({ enabled, setEnabled }: BudgetSetupProps) => {
 					onChange={handleCategoryChange}
 					variant='standard'
 					required
+					helperText={catErrorMessage?.spendingLimit ? catErrorMessage.spendingLimit : ""}
 					color='primary'
 				/>
 			</Stack>
+
 			<Stack sx={{ pt: 3 }} direction='column' spacing={3}>
 				<FormGroup sx={{ width: "100%", mr: "auto", px: 10 }}>
 					<FormControlLabel
 						control={
 							<Checkbox
 								checked={enabled}
-								onChange={() => setEnabled((enabled) => !enabled)}
+								onChange={() => {
+									setEnabled((enabled) => {
+										const updated = !enabled;
+										updated === false && setPlannedErrorMessage(undefined);
+										return updated;
+									});
+								}}
 							/>
 						}
 						label='Include planned payment'
@@ -165,6 +209,7 @@ const BudgetSetup = ({ enabled, setEnabled }: BudgetSetupProps) => {
 						value={enabled ? formData.plannedPayments![0].name : ""}
 						onChange={handlePlannedPaymentChange}
 						name='name'
+						helperText={plannedErrorMessage?.name ? plannedErrorMessage.name : ""}
 						variant='standard'
 						required
 						color='primary'
@@ -184,6 +229,7 @@ const BudgetSetup = ({ enabled, setEnabled }: BudgetSetupProps) => {
 						onChange={handlePlannedPaymentChange}
 						variant='standard'
 						required
+						helperText={plannedErrorMessage?.amount ? plannedErrorMessage.amount : ""}
 						color='primary'
 					/>
 					<LocalizationProvider dateAdapter={AdapterDayjs}>

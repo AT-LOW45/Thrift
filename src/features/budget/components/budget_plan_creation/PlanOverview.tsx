@@ -1,35 +1,45 @@
 import {
+	Box,
 	DialogContentText,
 	FormControl,
 	InputLabel,
 	MenuItem,
 	Select,
 	SelectChangeEvent,
-	TextField
+	TextField,
 } from "@mui/material";
-import React, { Fragment } from "react";
+import { ChangeEvent, Fragment, FocusEvent, useState } from "react";
+import { ZodError } from "zod";
 import { useMultiStep } from "../../../../context/MultiStepContext";
 import { BudgetPlan } from "../../budget.schema";
 import budgetService from "../../budget.service";
 
 const PlanOverview = () => {
 	const { formData, updateContext } = useMultiStep<BudgetPlan>();
+	const [errorMessages, setErrorMessages] =
+		useState<ZodError<BudgetPlan>["formErrors"]["fieldErrors"]>();
+
+	const validateState = (budgetPlan: BudgetPlan) => {
+		const result = budgetService.validatePlanPartial(budgetPlan);
+		if (result === true) {
+			setErrorMessages(undefined);
+			return true;
+		} else {
+			setErrorMessages(result);
+			return false;
+		}
+	};
 
 	const handleChanges = (
 		event:
 			| SelectChangeEvent
-			| React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
-			| React.FocusEvent<HTMLInputElement | HTMLTextAreaElement, Element>
-	) =>
-		updateContext(event, (data) => {
-			return [budgetService.validatePlanPartial(data)];
-		});
+			| ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
+			| FocusEvent<HTMLInputElement | HTMLTextAreaElement, Element>
+	) => updateContext(event, (data) => [validateState(data)]);
 
-	const handleSpendLimit = (event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
+	const handleSpendLimit = (event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
 		const spendLimit = parseInt(event.target.value);
-		updateContext({ key: "spendingLimit", value: spendLimit }, (data) => {
-			return [budgetService.validatePlanPartial(data)];
-		});
+		updateContext({ key: "spendingLimit", value: spendLimit }, (data) => [validateState(data)]);
 	};
 
 	return (
@@ -38,15 +48,16 @@ const PlanOverview = () => {
 				Create a budget plan to start saving. First of all, tell us how you want to name it
 				and provide an overall spending limit.
 			</DialogContentText>
+
 			<TextField
-				sx={{ minWidth: "50%" }}
 				autoFocus
+				sx={{ minWidth: "50%" }}
 				onFocus={handleChanges}
-				label='Name'
+				label='Budget Plan Name'
 				name='name'
 				defaultValue={formData.name}
 				onChange={handleChanges}
-				helperText='Provide a name for your new budget plan'
+				helperText={errorMessages?.name ? errorMessages.name : ""}
 				variant='standard'
 				required
 				color='primary'
@@ -58,7 +69,7 @@ const PlanOverview = () => {
 				onChange={handleSpendLimit}
 				type='number'
 				value={isNaN(formData.spendingLimit) ? "" : formData.spendingLimit}
-				helperText='Provide a spending limit for your new budget plan'
+				helperText={errorMessages?.spendingLimit ? errorMessages.spendingLimit : ""}
 				variant='standard'
 				required
 				color='primary'
@@ -70,23 +81,25 @@ const PlanOverview = () => {
 				name='note'
 				onChange={handleChanges}
 				multiline
-				helperText='Add a short memo to describe this budget plan'
+				value={formData.note}
+				helperText={errorMessages?.note ? errorMessages.note : ""}
 				rows={4}
 			/>
 			<FormControl variant='standard' sx={{ minWidth: "50%" }}>
-				<InputLabel id='demo-simple-select-standard-label'>Age</InputLabel>
+				<InputLabel id='demo-simple-select-standard-label'>
+					Your budgets will be renewed based on the provided term
+				</InputLabel>
 				<Select
 					labelId='demo-simple-select-standard-label'
 					id='demo-simple-select-standard'
 					value={formData.renewalTerm}
 					name='renewalTerm'
 					onChange={handleChanges}
-					label='Age'
+					label='Renewal Term'
 				>
 					<MenuItem value='biweekly'>biweekly</MenuItem>
 					<MenuItem value='monthly'>monthly</MenuItem>
 				</Select>
-				{/* <FormHelperText></FormHelperText> */}
 			</FormControl>
 		</Fragment>
 	);

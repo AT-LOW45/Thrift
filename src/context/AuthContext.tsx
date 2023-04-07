@@ -36,11 +36,13 @@ const Auth = ({ children }: AuthProps) => {
 			// create user, then add user profile and payment info
 			const { email, password, interest, paymentInfo, username } = registrationInfo;
 			const userCredentials = await createUserWithEmailAndPassword(auth, email, password);
+			console.log(userCredentials.user.uid)
 
 			const profileResult = await profileService.addProfile({
 				username,
 				interest,
 				userUid: userCredentials.user.uid,
+				group: ""
 			} as Profile);
 
 			const paymentInfoResult = await Promise.all(
@@ -48,7 +50,7 @@ const Auth = ({ children }: AuthProps) => {
 					async (info) =>
 						await paymentInfoService.addDoc({
 							...info,
-							user: username,
+							userUid: userCredentials.user.uid,
 						} as PersonalAccount)
 				)
 			);

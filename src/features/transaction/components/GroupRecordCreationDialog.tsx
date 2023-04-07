@@ -12,9 +12,11 @@ import {
 	FormHelperText,
 	InputLabel,
 	MenuItem,
-	Select, Stack,
+	Select,
+	Stack,
+	Portal,
 	TextField,
-	Typography
+	Typography,
 } from "@mui/material";
 import { Fragment } from "react";
 import FormDialog, { FormDialogProps } from "../../../components/form/FormDialog";
@@ -41,6 +43,7 @@ const GroupRecordCreationDialog = ({
 		handleChange,
 		isValid,
 		label,
+		errorMessages,
 		proceedWithTransac,
 		removeLabel,
 		testAuto,
@@ -58,6 +61,7 @@ const GroupRecordCreationDialog = ({
 				]}
 				open={open}
 				toggleModal={toggleModal}
+				title='Group Record Creation'
 			>
 				<Stack spacing={3} sx={{ px: 5 }}>
 					<Box>
@@ -88,7 +92,7 @@ const GroupRecordCreationDialog = ({
 						</FormControl>
 						<BudgetChip option={groupTransaction.category} />
 					</Stack>
-					
+
 					<TextField
 						type='number'
 						value={isNaN(groupTransaction.amount) ? "" : groupTransaction.amount}
@@ -97,6 +101,7 @@ const GroupRecordCreationDialog = ({
 						onChange={handleChange}
 						sx={{ width: "50%" }}
 						label='Amount'
+						helperText={errorMessages?.amount ? errorMessages.amount[0] : ""}
 					/>
 					<TextField
 						multiline
@@ -151,25 +156,27 @@ const GroupRecordCreationDialog = ({
 					</Stack>
 				</Stack>
 			</FormDialog>
-			<Dialog
-				open={groupTransacConfirmationDialogOpen}
-				onClose={toggleConfirmationDialog}
-				aria-labelledby='alert-dialog-title'
-				aria-describedby='alert-dialog-description'
-			>
-				<DialogTitle id='alert-dialog-title'>Transaction Limit Alert</DialogTitle>
-				<DialogContent>
-					<DialogContentText id='alert-dialog-description'>
-						Your transaction amount of RM {groupTransaction.amount} is greater than your
-						authorised limit of RM {group.transactionLimit}. All members will need to
-						approve before this transaction will go through.
-					</DialogContentText>
-				</DialogContent>
-				<DialogActions>
-					<Button onClick={toggleConfirmationDialog}>Disagree</Button>
-					<Button onClick={confirmTransaction}>Agree</Button>
-				</DialogActions>
-			</Dialog>
+			<Portal>
+				<Dialog
+					open={groupTransacConfirmationDialogOpen}
+					onClose={toggleConfirmationDialog}
+					aria-labelledby='alert-dialog-title'
+					aria-describedby='alert-dialog-description'
+				>
+					<DialogTitle id='alert-dialog-title'>Transaction Limit Alert</DialogTitle>
+					<DialogContent>
+						<DialogContentText id='alert-dialog-description'>
+							Your transaction amount of RM {groupTransaction.amount} is greater than
+							your authorised limit of RM {group.transactionLimit}. The group owner
+							needs to approve your request before this transaction will go through.
+						</DialogContentText>
+					</DialogContent>
+					<DialogActions>
+						<Button onClick={toggleConfirmationDialog}>Disagree</Button>
+						<Button onClick={confirmTransaction}>Agree</Button>
+					</DialogActions>
+				</Dialog>
+			</Portal>
 		</Fragment>
 	);
 };

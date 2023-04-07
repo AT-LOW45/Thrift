@@ -1,15 +1,20 @@
-import { Stack, Typography, Button } from "@mui/material";
-import { ProgressBar, Tray } from "../../../components";
-import BudgetChip from "./BudgetChip";
-import InfoTwoToneIcon from "@mui/icons-material/InfoTwoTone";
 import DeleteOutlineTwoToneIcon from "@mui/icons-material/DeleteOutlineTwoTone";
-import { Fragment } from "react";
+import InfoTwoToneIcon from "@mui/icons-material/InfoTwoTone";
+import { Button, Stack, Typography } from "@mui/material";
+import { Fragment, useState } from "react";
 import { Link } from "react-router-dom";
+import { ProgressBar, Tray } from "../../../components";
 import { BudgetPlan } from "../budget.schema";
+import BudgetChip from "./BudgetChip";
+import ConfirmCloseBudgetDialog from "./ConfirmCloseBudgetDialog";
 
 type BudgetPlanTrayProps = { budgetPlan: BudgetPlan };
 
 const BudgetPlanTray = ({ budgetPlan }: BudgetPlanTrayProps) => {
+	const [open, setOpen] = useState(false);
+
+	const toggleConfirmationDialog = () => setOpen((open) => !open);
+
 	const getFillType = (usage: number): { from: string; to: string } => {
 		if (usage < 50) {
 			return { from: "green", to: "lime" };
@@ -21,44 +26,54 @@ const BudgetPlanTray = ({ budgetPlan }: BudgetPlanTrayProps) => {
 	};
 
 	return (
-		<Tray
-			colSpan={{ xs: 12, md: 6 }}
-			title={budgetPlan.name}
-			actions={
-				<Fragment>
-					<Link to={`/budgets/${budgetPlan.id}`} style={{ textDecoration: "none" }}>
-						<Button color='secondary' endIcon={<InfoTwoToneIcon />}>
-							View Plan
+		<Fragment>
+			<Tray
+				colSpan={{ xs: 12, md: 6 }}
+				title={budgetPlan.name}
+				actions={
+					<Fragment>
+						<Link to={`/budgets/${budgetPlan.id}`} style={{ textDecoration: "none" }}>
+							<Button color='secondary' endIcon={<InfoTwoToneIcon />}>
+								View Plan
+							</Button>
+						</Link>
+						<Button
+							color='error'
+							endIcon={<DeleteOutlineTwoToneIcon />}
+							onClick={toggleConfirmationDialog}
+						>
+							Delete Plan
 						</Button>
-					</Link>
-
-					<Button color='error' endIcon={<DeleteOutlineTwoToneIcon />}>
-						Delete Plan
-					</Button>
-				</Fragment>
-			}
-		>
-			<Stack direction='column' sx={{ mt: 2 }}>
-				<Stack direction='row' justifyContent='space-between' sx={{ mb: 1 }}>
-					<Typography>RM {budgetPlan.amountLeftCurrency}</Typography>
-					<Typography>{budgetPlan.amountLeftPercentage}% used</Typography>
-				</Stack>
-				<ProgressBar
-					fillType={getFillType(budgetPlan.amountLeftPercentage!)}
-					fillPercentage={budgetPlan.amountLeftPercentage}
-				/>
-				<Stack direction='row' sx={{ mt: 2 }} alignItems='center'>
-					<Typography sx={{ mr: 2 }}>Top budget: </Typography>
-					<BudgetChip option='groceries' />
-					<Typography variant='regularLight' sx={{ ml: 2 }}>
-						2 transactions recorded
+					</Fragment>
+				}
+			>
+				<Stack direction='column' sx={{ mt: 2 }}>
+					<Stack direction='row' justifyContent='space-between' sx={{ mb: 1 }}>
+						<Typography>RM {budgetPlan.amountLeftCurrency}</Typography>
+						<Typography>{budgetPlan.amountLeftPercentage}% used</Typography>
+					</Stack>
+					<ProgressBar
+						fillType={getFillType(budgetPlan.amountLeftPercentage!)}
+						fillPercentage={budgetPlan.amountLeftPercentage}
+					/>
+					<Stack direction='row' sx={{ mt: 2 }} alignItems='center'>
+						<Typography sx={{ mr: 2 }}>Top budget: </Typography>
+						<BudgetChip option='groceries' />
+						<Typography variant='regularLight' sx={{ ml: 2 }}>
+							2 transactions recorded
+						</Typography>
+					</Stack>
+					<Typography textAlign='end' sx={{ mt: 1 }}>
+						renews {budgetPlan.renewalTerm}
 					</Typography>
 				</Stack>
-				<Typography textAlign='end' sx={{ mt: 1 }}>
-					renews {budgetPlan.renewalTerm}
-				</Typography>
-			</Stack>
-		</Tray>
+			</Tray>
+			<ConfirmCloseBudgetDialog
+				open={open}
+				toggleModal={toggleConfirmationDialog}
+				budgetPlanId={budgetPlan.id!}
+			/>
+		</Fragment>
 	);
 };
 

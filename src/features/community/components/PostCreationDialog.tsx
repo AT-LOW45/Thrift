@@ -4,6 +4,7 @@ import { ChangeEvent, useRef, useState } from "react";
 import FormDialog, { FormDialogProps } from "../../../components/form/FormDialog";
 import { Post, PostSchemaDefaults } from "../community.schema";
 import communityService from "../community.service";
+import { ZodError } from "zod";
 
 type PostCreationDialogProps = Pick<FormDialogProps, "toggleModal" | "open">;
 
@@ -11,6 +12,9 @@ const PostCreationDialog = ({ open, toggleModal }: PostCreationDialogProps) => {
 	const [image, setSelectedImage] = useState<string>();
 	const [selectedFile, setSelectedFile] = useState<File>();
 	const [post, setPost] = useState<Post>(PostSchemaDefaults.parse({}));
+	const [isValid, setIsValid] = useState(false);
+	const [errorMessages, setErrorMessages] =
+		useState<ZodError<Post>["formErrors"]["fieldErrors"]>();
 
 	const fileSelectRef = useRef<HTMLInputElement>(null);
 
@@ -20,8 +24,21 @@ const PostCreationDialog = ({ open, toggleModal }: PostCreationDialogProps) => {
 		setSelectedImage(URL.createObjectURL(file));
 	};
 
-	const handleInputChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-		setPost((post) => ({ ...post, [event.target.name]: event.target.value }));
+	const handleInputChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+		setPost((post) => {
+			const updated = { ...post, [event.target.name]: event.target.value };
+			const result = communityService.validatePost(updated);
+			
+			if (result === true) {
+				setErrorMessages(undefined);
+				setIsValid(true);
+			} else {
+				setErrorMessages(result);
+				setIsValid(false);
+			}
+			return updated;
+		});
+	};
 
 	const addPost = async () => {
 		console.log("added");
@@ -37,10 +54,11 @@ const PostCreationDialog = ({ open, toggleModal }: PostCreationDialogProps) => {
 			open={open}
 			toggleModal={toggleModal}
 			actions={[
-				<Button key={1} variant='contained' onClick={addPost}>
+				<Button key={1} variant='contained' onClick={addPost} disabled={!isValid}>
 					Add Post
 				</Button>,
 			]}
+			title="Post Creation"
 		>
 			<Stack direction='column' spacing={3}>
 				<TextField
@@ -50,7 +68,7 @@ const PostCreationDialog = ({ open, toggleModal }: PostCreationDialogProps) => {
 					label='Title'
 					name='title'
 					onChange={handleInputChange}
-					helperText='New post'
+					helperText={errorMessages?.title ? errorMessages?.title : ""}
 					variant='standard'
 					required
 					color='primary'
@@ -63,8 +81,8 @@ const PostCreationDialog = ({ open, toggleModal }: PostCreationDialogProps) => {
 					sx={{ maxWidth: "70%" }}
 					label="What's on your mind?"
 					name='body'
+					helperText={errorMessages?.body ? errorMessages?.body : ""}
 				/>
-
 
 				<Stack direction='row' spacing={2}>
 					<label

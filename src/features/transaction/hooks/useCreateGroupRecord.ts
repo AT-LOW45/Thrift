@@ -5,6 +5,7 @@ import { Group } from "../../group_planning/group.schema";
 import paymentInfoService from "../../payment_info/paymentInfo.service";
 import { GroupTransaction, GroupTransactionSchemaDefaults, labels } from "../transaction.schema";
 import transactionService from "../transaction.service";
+import { ZodError } from "zod";
 
 const useCreateGroupRecord = (group: Group, toggleModal: () => void) => {
 	const [groupTransaction, setGroupTransaction] = useState<GroupTransaction>(
@@ -17,6 +18,8 @@ const useCreateGroupRecord = (group: Group, toggleModal: () => void) => {
 	const { user } = useContext(AuthContext);
 	const [groupTransacConfirmationDialogOpen, setGroupTransacConfirmationDialogOpen] =
 		useState(false);
+	const [errorMessages, setErrorMessages] =
+		useState<ZodError<GroupTransaction>["formErrors"]["fieldErrors"]>();
 
 	useEffect(() => {
 		const findGroupAccount = async () => {
@@ -81,7 +84,13 @@ const useCreateGroupRecord = (group: Group, toggleModal: () => void) => {
 			const updated = { ...record, [event.target.name]: value };
 			const result = transactionService.validateGroupRecordDetails(updated);
 			const isWithinBounds = updated.amount <= accountBalance;
-			setIsValid(result && isWithinBounds);
+			if (result === true) {
+				setErrorMessages(undefined);
+				setIsValid(true && isWithinBounds);
+			} else {
+				setErrorMessages(result);
+				setIsValid(false && isWithinBounds);
+			}
 			return updated;
 		});
 	};
@@ -126,6 +135,7 @@ const useCreateGroupRecord = (group: Group, toggleModal: () => void) => {
 		accountBalance,
 		label,
 		groupTransacConfirmationDialogOpen,
+		errorMessages,
 		testAuto,
 		testAutoFree,
 		removeLabel,

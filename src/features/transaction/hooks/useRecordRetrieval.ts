@@ -1,5 +1,6 @@
 import { styled } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
+import { Unsubscribe } from "firebase/auth";
 import { collection, getFirestore, onSnapshot, query, where } from "firebase/firestore";
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../../context/AuthContext";
@@ -7,6 +8,8 @@ import app from "../../../firebaseConfig";
 import data_grid_configuration from "../../../pages/records/data_grid_configuration";
 import { FirestoreTimestampObject } from "../../../service/thrift";
 import { budgetService } from "../../budget";
+import { Group } from "../../group_planning/group.schema";
+import groupService from "../../group_planning/group.service";
 import paymentInfoService from "../../payment_info/paymentInfo.service";
 import profileService from "../../profile/profile.service";
 import {
@@ -16,9 +19,6 @@ import {
 	Transaction,
 	TransactionSchemaDefaults,
 } from "../transaction.schema";
-import groupService from "../../group_planning/group.service";
-import { Unsubscribe } from "firebase/auth";
-import { Group, GroupSchemaDefaults } from "../../group_planning/group.schema";
 
 type RecordsStream = Promise<
 	| {
@@ -125,7 +125,9 @@ const useRecordRetrieval = () => {
 			const groupRecordsWithAccount = await Promise.all(
 				groupRecords.map(async (record) => {
 					const group = await groupService.find(groupId);
-					return { groupName: group.name, ...record };
+					const account = await profileService.findProfile(record.madeBy);
+
+					return { groupName: group.name, ...record, madeBy: account.username };
 				})
 			);
 
@@ -173,7 +175,7 @@ const useRecordRetrieval = () => {
 	): record is GroupTransaction => "status" in record;
 
 	const isGroupIncome = (record: GroupTransaction | GroupIncome): record is GroupIncome =>
-		"type" in record;
+		!("category" in record);
 
 	const { columnsIncome, columnsTransactions, columnsGroupTransactions, columnsGroupIncome } =
 		data_grid_configuration(openDialog);
@@ -220,7 +222,7 @@ const useRecordRetrieval = () => {
 			transactionDate: new Date(
 				(groupTransaction.transactionDate as FirestoreTimestampObject).seconds * 1000
 			).toLocaleDateString(),
-			status: groupTransaction.status
+			status: groupTransaction.status,
 		}));
 
 	return {

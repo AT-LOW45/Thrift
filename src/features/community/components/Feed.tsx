@@ -7,10 +7,11 @@ import {
 	CardMedia,
 	Divider,
 	Stack,
-	Typography
+	Typography,
 } from "@mui/material";
 import { useState } from "react";
 import useRealtimeUpdate from "../../../hooks/useRealtimeUpdate";
+import { FirestoreTimestampObject } from "../../../service/thrift";
 import { Post, PostSchemaDefaults } from "../community.schema";
 import PostDetailsDialog from "./PostDetailsDialog";
 
@@ -22,7 +23,6 @@ const Feed = () => {
 	const toggleDialog = () => setDetailsDialogOpen((open) => !open);
 
 	const findPost = (postId: string | undefined) => {
-		
 		const targetPost = firestoreCollection.find((post) => post.id === postId);
 		if (targetPost) {
 			setPost(targetPost);
@@ -30,11 +30,28 @@ const Feed = () => {
 		}
 	};
 
+	const sortPostByDescendingDate = (prev: Post, next: Post) => {
+		const convertDate = (timestamp: FirestoreTimestampObject) => {
+			return new Date(timestamp.seconds * 1000);
+		};
+		return (
+			convertDate(next.datePosted as FirestoreTimestampObject).getTime() -
+			convertDate(prev.datePosted as FirestoreTimestampObject).getTime()
+		);
+	};
+
+	const returnSortedPosts = (posts: Post[]) => {
+		// create a copy of the posts array using the slice() method. This is important because sort() mutates the original array, and we don't want to modify the original array.
+		const sorted = posts.slice().sort(sortPostByDescendingDate).slice(0, 3);
+		const sortedArray = [...sorted];
+		return sortedArray;
+	};
+
 	return (
 		<Box display='flex'>
 			<Stack direction='column' flexGrow={1} spacing={5}>
 				{firestoreCollection.map((post, index) => (
-					<Card sx={{ maxWidth: 600, maxHeight: 600 }} key={index}>
+					<Card sx={{ maxWidth: 600, maxHeight: 600 }} key={post.id}>
 						<CardActionArea onClick={() => findPost(post.id)}>
 							{post.mediaAttachment && (
 								<CardMedia
@@ -77,33 +94,44 @@ const Feed = () => {
 					direction='column'
 					spacing={2}
 					sx={{ position: "sticky", top: 0, pr: 3 }}
-					flexGrow={1}
+					// flexGrow={1}
+					
 				>
 					<Typography textAlign='right' variant='regularSubHeading'>
 						Recent Activities
 					</Typography>
-					<Stack direction='row' style={{ marginLeft: "auto" }} spacing={2}>
-						<Avatar>N</Avatar>
+					{returnSortedPosts(firestoreCollection).map((post) => (
 						<Stack
-							direction='column'
-							sx={{
-								maxWidth: 200,
-							}}
+							direction='row'
+							
+							spacing={2}
+							key={post.id}
 						>
-							<Typography
+							<Avatar>{post.postedBy.charAt(0).toUpperCase()}</Avatar>
+							<Stack
+								direction='column'
 								sx={{
-									textOverflow: "ellipsis",
-									whiteSpace: "nowrap",
-									wordWrap: "break-word",
-									overflow: "hidden",
+									maxWidth: 200,
 								}}
 							>
-								Lorem ipsum dolor sit amet consectetur, adipisicing elit. Vitae,
-								ullam.
-							</Typography>
-							<Typography>xx/xx/xx</Typography>
+								<Typography
+									sx={{
+										textOverflow: "ellipsis",
+										whiteSpace: "nowrap",
+										wordWrap: "break-word",
+										overflow: "hidden",
+									}}
+								>
+									{post.body}
+								</Typography>
+								<Typography>
+									{new Date(
+										(post.datePosted as FirestoreTimestampObject).seconds * 1000
+									).toLocaleDateString()}
+								</Typography>
+							</Stack>
 						</Stack>
-					</Stack>
+					))}
 				</Stack>
 			</Box>
 			<PostDetailsDialog open={detailsDialogOpen} toggleModal={toggleDialog} post={post} />

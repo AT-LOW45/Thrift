@@ -1,6 +1,7 @@
 import { getAuth } from "firebase/auth";
 import {
 	addDoc,
+	arrayUnion,
 	collection,
 	doc,
 	getDoc,
@@ -13,6 +14,7 @@ import {
 } from "firebase/firestore";
 import app from "../../firebaseConfig";
 import { ThriftServiceProvider } from "../../service/thrift";
+import { Profile } from "../profile/profile.schema";
 import {
 	GroupAccount,
 	GroupAccountSchema,
@@ -20,6 +22,7 @@ import {
 	PersonalAccount,
 	PersonalAccountSchema,
 } from "./paymentInfo.schema";
+import { ZodError } from "zod";
 
 interface PaymentInfoServiceProvider extends ThriftServiceProvider<PaymentInfo> {
 	getPersonalAccounts(): Promise<PersonalAccount[]>;
@@ -35,6 +38,11 @@ interface PaymentInfoServiceProvider extends ThriftServiceProvider<PaymentInfo> 
 		transactionType: "credit" | "debit",
 		groupId: string
 	): Promise<boolean>;
+	validateGroupAccount(
+		groupAccount: GroupAccount
+	): true | ZodError<GroupAccount>["formErrors"]["fieldErrors"];
+	createGroupAccount(groupAccount: GroupAccount): Promise<string | boolean>;
+	addGroupMaintainer(groupAccount: GroupAccount, user: Profile): Promise<void>;
 }
 
 const firestore = getFirestore(app);
@@ -150,6 +158,44 @@ const paymentInfoService: PaymentInfoServiceProvider = {
 			} else {
 				return false;
 			}
+		}
+	},
+	validateGroupAccount: function (groupAccount: GroupAccount) {
+		const result = GroupAccountSchema.safeParse(groupAccount);
+
+		if (result.success === true) {
+			return true;
+		} else {
+			return result.error.formErrors.fieldErrors;
+		}
+	},
+	createGroupAccount: async function (groupAccount: GroupAccount) {
+		const result = GroupAccountSchema.safeParse(groupAccount);
+
+		if (result.success === true) {
+			const paymentInfoRef = collection(firestore, "PaymentInfo");
+			const { id, maintainers, ...rest } = result.data;
+			const newGroupAccRef = await addDoc(paymentInfoRef, {
+				maintainers: Array.from(maintainers),
+				...rest,
+			});
+
+			return newGroupAccRef.id;
+		} else {
+			return false;
+		}
+	},
+	addGroupMaintainer: async function (groupAccount: GroupAccount, user: Profile) {
+		const groupAccRef = doc(firestore, "PaymentInfo", groupAccount.id!);
+		const maintainersArrayUnknown = groupAccount.maintainers as unknown;
+		const maintainersArray = maintainersArrayUnknown as string[];
+
+		const maintainerAdded = maintainersArray.includes(user.username);
+
+		if (!maintainerAdded) {
+			await updateDoc(groupAccRef, {
+				maintainers: arrayUnion(user.username),
+			});
 		}
 	},
 };

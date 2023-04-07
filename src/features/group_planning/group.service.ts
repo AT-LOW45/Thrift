@@ -1,4 +1,6 @@
+import { getAuth } from "firebase/auth";
 import {
+	addDoc,
 	collection,
 	doc,
 	getDoc,
@@ -8,18 +10,23 @@ import {
 	updateDoc,
 	where,
 } from "firebase/firestore";
-import { ThriftServiceProvider } from "../../service/thrift";
-import { Group } from "./group.schema";
 import app from "../../firebaseConfig";
+import { ThriftServiceProvider } from "../../service/thrift";
 import { Profile } from "../profile/profile.schema";
+import { Group, GroupSchema } from "./group.schema";
+import profileService from "../profile/profile.service";
+import { ZodError } from "zod";
 
 interface GroupServiceProvider extends Omit<ThriftServiceProvider<Group>, "readAll"> {
 	findMembers(groupId: string): Promise<Profile[]>;
 	findAvailableUserProfiles(): Promise<Profile[]>;
 	enlistMembers(members: Set<Profile>, groupId: string): Promise<void>;
+	validateGroupDetails(group: Group): true | ZodError<Group>["formErrors"]["fieldErrors"];
+	leaveGroup(): Promise<void>;
 }
 
 const firestore = getFirestore(app);
+const auth = getAuth(app);
 
 const groupService: GroupServiceProvider = {
 	find: async function (id: string) {
@@ -28,7 +35,21 @@ const groupService: GroupServiceProvider = {
 		return { id: groupDoc.id, ...groupDoc.data() } as Group;
 	},
 	addDoc: async function (group: Group) {
-		throw new Error("function not implemented");
+		const result = GroupSchema.safeParse(group);
+
+		if (result.success === true) {
+			const groupRef = collection(firestore, "Group");
+			const { groupAccount, id, members, ...rest } = result.data;
+
+			const newGroupRef = await addDoc(groupRef, {
+				members: Array.from(members),
+				...rest,
+			});
+
+			return newGroupRef.id;
+		} else {
+			return false;
+		}
 	},
 	findMembers: async function (groupId: string) {
 		const profileRef = collection(firestore, "UserProfile");
@@ -53,6 +74,28 @@ const groupService: GroupServiceProvider = {
 			await updateDoc(profileRef, {
 				group: groupId,
 			});
+		});
+	},
+	validateGroupDetails: function (group: Group) {
+		const GroupDetailsSchema = GroupSchema.pick({
+			name: true,
+			spendingLimit: true,
+			transactionLimit: true,
+		});
+
+		const result = GroupDetailsSchema.safeParse(group);
+
+		if (result.success === true) {
+			return true;
+		} else {
+			return result.error.formErrors.fieldErrors;
+		}
+	},
+	leaveGroup: async function () {
+		const foundProfile = await profileService.findProfile(auth.currentUser?.uid!);
+		const profileRef = doc(firestore, "UserProfile", foundProfile.id!);
+		await updateDoc(profileRef, {
+			group: "",
 		});
 	},
 };

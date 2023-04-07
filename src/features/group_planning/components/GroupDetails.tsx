@@ -5,7 +5,13 @@ import {
 	Avatar,
 	Box,
 	Button,
+	Dialog,
+	DialogActions,
+	DialogContent,
+	DialogContentText,
+	DialogTitle,
 	Paper,
+	Portal,
 	Stack,
 	Table,
 	TableBody,
@@ -22,6 +28,9 @@ import useGroupDetailRetrieval from "../hooks/useGroupDetailRetrieval";
 import AddMemberDialog from "./AddMemberDialog";
 import ContributionDialog from "./ContributionDialog";
 import PendingTransactionDialog from "./PendingTransactionDialog";
+import DoorBackIcon from "@mui/icons-material/DoorBack";
+import groupService from "../group.service";
+import { useNavigate } from "react-router-dom";
 
 type GroupDetailsProps = { isOwner: boolean; group: Group };
 
@@ -38,12 +47,21 @@ const GroupDetails = ({ isOwner, group }: GroupDetailsProps) => {
 	const [pendingTransactionsDialogOpen, setPendingTransactionsDialogOpen] = useState(false);
 	const [addMemberDialogOpen, setAddMemberDialogOpen] = useState(false);
 	const [contributionDialogOpen, setContributionDialogOpen] = useState(false);
+	const [exitGroupDialogOpen, setExitGroupDialogOpen] = useState(false);
+	const navigate = useNavigate();
 
 	const togglePendingTransactionsDialog = () => setPendingTransactionsDialogOpen((open) => !open);
 
 	const toggleAddMemberDialog = () => setAddMemberDialogOpen((open) => !open);
 
 	const toggleContributionDialog = () => setContributionDialogOpen((open) => !open);
+
+	const toggleExitGroupDialog = () => setExitGroupDialogOpen((open) => !open);
+
+	const exitGroup = async () => {
+		await groupService.leaveGroup();
+		navigate("/group-planning");
+	};
 
 	return (
 		<Stack spacing={4} mt={3} mx={5}>
@@ -97,11 +115,11 @@ const GroupDetails = ({ isOwner, group }: GroupDetailsProps) => {
 			<Typography fontSize='1.2rem' fontWeight={500}>
 				You are authorised to spend
 				<Typography component='span' px={1} variant='numberHeading'>
-					RM 500
+					RM {group.spendingLimit}
 				</Typography>
 				in a month,
 				<Typography component='span' px={1} variant='numberHeading'>
-					RM 120
+					RM {group.transactionLimit}
 				</Typography>
 				per transaction
 			</Typography>
@@ -137,7 +155,7 @@ const GroupDetails = ({ isOwner, group }: GroupDetailsProps) => {
 								borderRadius: "10px",
 							}}
 						>
-							{[...group.maintainers].length === 0 ? (
+							{[...groupAccount.maintainers].length === 0 ? (
 								<Typography
 									component='p'
 									sx={{ py: 1, px: 2 }}
@@ -147,7 +165,7 @@ const GroupDetails = ({ isOwner, group }: GroupDetailsProps) => {
 									Wow, such empty
 								</Typography>
 							) : (
-								[...group.maintainers].map((maintainer) => (
+								[...groupAccount.maintainers].map((maintainer) => (
 									<Stack
 										key={maintainer}
 										direction='row'
@@ -230,7 +248,12 @@ const GroupDetails = ({ isOwner, group }: GroupDetailsProps) => {
 			<Stack spacing={2} pb={10}>
 				<Stack direction='row' spacing={3} mt={3} alignItems='center'>
 					<Typography variant='regularSubHeading'>Last Accessed</Typography>
-					<Button endIcon={<KeyboardArrowRightIcon />}>View More</Button>
+					<Button
+						endIcon={<KeyboardArrowRightIcon />}
+						onClick={() => navigate("/transactions")}
+					>
+						Go to Records
+					</Button>
 				</Stack>
 				<TableContainer component={Paper}>
 					<Table sx={{ minWidth: 700 }} aria-label='customized table'>
@@ -273,6 +296,19 @@ const GroupDetails = ({ isOwner, group }: GroupDetailsProps) => {
 						</TableBody>
 					</Table>
 				</TableContainer>
+				{!isOwner && (
+					<Box sx={{ py: 2, display: "flex" }}>
+						<Button
+							color='error'
+							variant='contained'
+							onClick={toggleExitGroupDialog}
+							endIcon={<DoorBackIcon />}
+							sx={{ width: "fit-content", margin: "auto" }}
+						>
+							Leave Group
+						</Button>
+					</Box>
+				)}
 			</Stack>
 			{isOwner && pendingTransactions.pendingTransactions.length !== 0 && (
 				<PendingTransactionDialog
@@ -292,6 +328,29 @@ const GroupDetails = ({ isOwner, group }: GroupDetailsProps) => {
 				toggleModal={toggleContributionDialog}
 				group={group}
 			/>
+			{!isOwner && (
+				<Portal>
+					<Dialog
+						open={exitGroupDialogOpen}
+						onClose={toggleExitGroupDialog}
+						aria-labelledby='alert-dialog-title'
+						aria-describedby='alert-dialog-description'
+					>
+						<DialogTitle>Leave this Group?</DialogTitle>
+						<DialogContent>
+							<DialogContentText>
+								You will not be able to view any group records after exiting the
+								group. You can rejoin the group if the group owner adds you as a
+								member
+							</DialogContentText>
+						</DialogContent>
+						<DialogActions>
+							<Button onClick={toggleExitGroupDialog}>Disagree</Button>
+							<Button onClick={exitGroup}>Agree</Button>
+						</DialogActions>
+					</Dialog>
+				</Portal>
+			)}
 		</Stack>
 	);
 };

@@ -21,7 +21,7 @@ const profileService: ProfileServiceProvider = {
 
 		if (result.success === true) {
 			const profileRef = collection(firestore, "UserProfile");
-			const newProfileRef = await addDoc(profileRef, result.data);
+			const newProfileRef = await addDoc(profileRef, {...result.data});
 			return newProfileRef.id;
 		} else {
 			return false;

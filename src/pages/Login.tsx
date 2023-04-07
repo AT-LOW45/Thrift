@@ -39,7 +39,7 @@ const Login = () => {
 
 	const LoginBanner = styled(Box)(({ theme }) => ({
 		background: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${thrift});`,
-		flexGrow: 1,
+		flexBasis: "50%",
 		backgroundRepeat: "no-repeat",
 		backgroundSize: "cover",
 		backgroundPosition: "right",
@@ -54,6 +54,7 @@ const Login = () => {
 
 	const LoginForm = styled(Box)(({ theme }) => ({
 		background: "#EEF4F5",
+		flexBasis: "50%",
 		[theme.breakpoints.down("md")]: {
 			background: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${thrift});`,
 			backgroundSize: "cover",
@@ -65,11 +66,12 @@ const Login = () => {
 			{/* banner */}
 			<LoginBanner>
 				<img src={thriftLogo} style={{ width: "auto", height: "400px" }} alt='' />
-				<Typography color='white' fontStyle='italic' fontSize='2rem'>
-					"Some profound quote"
+				<Typography color='white' fontStyle='italic' fontSize='2rem' textAlign="center" px={5}>
+					”Money is only a tool. It will take you wherever you wish, but it will not
+					replace you as the driver.”
 				</Typography>
 				<Typography color='white' fontSize='1.6rem'>
-					- someone
+					- Ayn Rand
 				</Typography>
 			</LoginBanner>
 

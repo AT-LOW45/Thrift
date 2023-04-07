@@ -11,17 +11,24 @@ import Tooltip from "@mui/material/Tooltip";
 import { Fragment, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
+import profileService from "../../features/profile/profile.service";
 
 export default function ProfileMenu() {
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 	const navigate = useNavigate();
 	const { logout } = useContext(AuthContext);
+	const { user } = useContext(AuthContext);
 
 	const open = Boolean(anchorEl);
 	const handleClick = (event: React.MouseEvent<HTMLElement>) => setAnchorEl(event.currentTarget);
 	const handleClose = () => setAnchorEl(null);
 
 	const signOut = () => logout().then(() => navigate("/"));
+
+	const goToProfilePage = async () => {
+		const foundProfile = await profileService.findProfile(user?.uid!);
+		navigate(`profile/${foundProfile.id}`)
+	};
 
 	return (
 		<Fragment>
@@ -78,7 +85,7 @@ export default function ProfileMenu() {
 				transformOrigin={{ horizontal: "right", vertical: "top" }}
 				anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
 			>
-				<MenuItem onClick={handleClose}>
+				<MenuItem onClick={goToProfilePage}>
 					<Avatar /> Profile
 				</MenuItem>
 

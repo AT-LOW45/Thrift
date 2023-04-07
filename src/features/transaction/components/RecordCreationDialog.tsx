@@ -14,8 +14,8 @@ import {
 import { Dispatch, Fragment, SetStateAction } from "react";
 import FormDialog, { FormDialogProps } from "../../../components/form/FormDialog";
 import BudgetChip from "../../budget/components/BudgetChip";
-import { Income, incomeTypes, Transaction, TransactionSchemaDefaults } from "../transaction.schema";
 import useCreateRecord from "../hooks/useCreateRecord";
+import { Income, Transaction, incomeTypes } from "../transaction.schema";
 
 type RecordCreationDialogProps = Pick<FormDialogProps, "open" | "toggleModal"> & {
 	openInfoBar: Dispatch<SetStateAction<boolean>>;
@@ -42,6 +42,7 @@ const RecordCreationDialog = ({ open, toggleModal, openInfoBar }: RecordCreation
 		accounts,
 		budgets,
 		isValid,
+		errorMessages,
 		testAutoFree,
 		setBudgets,
 	} = useCreateRecord(toggleModal);
@@ -51,13 +52,14 @@ const RecordCreationDialog = ({ open, toggleModal, openInfoBar }: RecordCreation
 			actions={[
 				<Button key={1} onClick={handleSubmit} disabled={!isValid}>
 					Finish
-				</Button>
+				</Button>,
 			]}
 			open={open}
 			toggleModal={() => {
 				setBudgets([]);
 				toggleModal();
 			}}
+			title="Record Creation"
 		>
 			<Stack direction='column' spacing={2} sx={{ px: 5 }}>
 				<Stack direction='row' spacing={2} alignItems='center'>
@@ -96,6 +98,9 @@ const RecordCreationDialog = ({ open, toggleModal, openInfoBar }: RecordCreation
 								))
 							)}
 						</Select>
+						<FormHelperText>
+							{errorMessages?.accountId ? errorMessages.accountId : ""}
+						</FormHelperText>
 					</FormControl>
 					<Stack sx={{ flexGrow: 1 }} direction='row' spacing={2}>
 						<Typography variant='regularSubHeading'>Balance: </Typography>
@@ -127,6 +132,9 @@ const RecordCreationDialog = ({ open, toggleModal, openInfoBar }: RecordCreation
 										</MenuItem>
 									))}
 								</Select>
+								<FormHelperText>
+									{errorMessages?.budgetPlanId ? errorMessages.budgetPlanId : ""}
+								</FormHelperText>
 							</FormControl>
 						</Stack>
 						<Stack direction='column' flexGrow={1} spacing={2}>
@@ -189,6 +197,9 @@ const RecordCreationDialog = ({ open, toggleModal, openInfoBar }: RecordCreation
 								</MenuItem>
 							))}
 						</Select>
+						<FormHelperText>
+							{errorMessages?.type ? errorMessages?.type : ""}
+						</FormHelperText>
 					</FormControl>
 				)}
 
@@ -200,6 +211,7 @@ const RecordCreationDialog = ({ open, toggleModal, openInfoBar }: RecordCreation
 					onChange={handleAmountOrMemoChange}
 					sx={{ width: "50%" }}
 					label='Amount'
+					helperText={errorMessages?.amount ? errorMessages?.amount[0] : ""}
 				/>
 				<TextField
 					multiline

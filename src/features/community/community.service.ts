@@ -7,6 +7,8 @@ import {
 	getDoc,
 	getDocs,
 	getFirestore,
+	limit,
+	orderBy,
 	query,
 	updateDoc,
 	where,
@@ -18,6 +20,7 @@ import profileService from "../profile/profile.service";
 import transactionService from "../transaction/transaction.service";
 import { CrowdFund, CrowdfundSchema, Post, PostSchema } from "./community.schema";
 import { Transaction } from "../transaction/transaction.schema";
+import { ZodError } from "zod";
 
 type OmitThriftServiceProvider = Omit<
 	ThriftServiceProvider<Post | CrowdFund>,
@@ -25,8 +28,11 @@ type OmitThriftServiceProvider = Omit<
 >;
 
 interface CommunityServiceProvider extends OmitThriftServiceProvider {
+	validatePost(post: Post): true | ZodError<Post>["formErrors"]["fieldErrors"];
 	addPost(post: Post, selectedImage?: File): Promise<string | boolean>;
-	validateCrowdfund(crowdfund: CrowdFund): boolean;
+	validateCrowdfund(
+		crowdfund: CrowdFund
+	): true | ZodError<CrowdFund>["formErrors"]["fieldErrors"];
 	initiateCrowdfund(crowdfund: CrowdFund): Promise<string | boolean>;
 	contribute(
 		userUid: string,
@@ -34,6 +40,8 @@ interface CommunityServiceProvider extends OmitThriftServiceProvider {
 		myCrowdfund: CrowdFund
 	): Promise<string | boolean>;
 	findMyCrowdfund(username: string): Promise<CrowdFund | null>;
+	getMostRecentPosts(): Promise<Post[]>;
+	closeCrowdfund(crowdfundId: string): Promise<void>;
 }
 
 const firestore = getFirestore(app);
@@ -41,6 +49,15 @@ const storage = getStorage(app);
 const auth = getAuth(app);
 
 const communityService: CommunityServiceProvider = {
+	validatePost: function (post: Post) {
+		const result = PostSchema.safeParse(post);
+
+		if (result.success === true) {
+			return true;
+		} else {
+			return result.error.formErrors.fieldErrors;
+		}
+	},
 	addPost: async function (post: Post, selectedImage?: File) {
 		const result = PostSchema.safeParse(post);
 		console.log(post);
@@ -60,6 +77,7 @@ const communityService: CommunityServiceProvider = {
 					body: result.data.body,
 					mediaAttachment: downloadURL,
 					postedBy: profile.username,
+					datePosted: result.data.datePosted,
 				} as Post);
 
 				return newPostRef.id;
@@ -83,7 +101,11 @@ const communityService: CommunityServiceProvider = {
 			endDate: true,
 		});
 		const result = PartialCrowdfund.safeParse(crowdfund);
-		return result.success;
+		if (result.success === true) {
+			return true;
+		} else {
+			return result.error.formErrors.fieldErrors;
+		}
 	},
 	initiateCrowdfund: async function (crowdfund: CrowdFund) {
 		const result = CrowdfundSchema.safeParse(crowdfund);
@@ -105,8 +127,13 @@ const communityService: CommunityServiceProvider = {
 	},
 	findMyCrowdfund: async function (username: string) {
 		const crowdfundRef = collection(firestore, "Crowdfund");
-		const fundQuery = query(crowdfundRef, where("initiator", "==", username));
+		const fundQuery = query(
+			crowdfundRef,
+			where("initiator", "==", username),
+			where("isActive", "==", true)
+		);
 		const myCrowdfund = await getDocs(fundQuery);
+		
 		return myCrowdfund.docs.length === 0
 			? null
 			: ({ ...myCrowdfund.docs[0].data(), id: myCrowdfund.docs[0].id } as CrowdFund);
@@ -156,16 +183,30 @@ const communityService: CommunityServiceProvider = {
 			description: `Crowdfund contribution to ${myCrowdfund.name}`,
 			amount: donation.amount,
 			accountId: donation.accountId,
-			accountName: donation.accountName
+			accountName: donation.accountName,
 		};
 
-		return await transactionService.addRecord(transaction as Transaction)
+		return await transactionService.addRecord(transaction as Transaction);
 	},
 	deleteDoc: async function () {
 		throw new Error("function not implemented");
 	},
 	find: async function (id: string) {
 		throw new Error("function not implemented");
+	},
+	getMostRecentPosts: async function () {
+		const postRef = collection(firestore, "Post");
+		const postQuery = query(postRef, orderBy("datePosted", "desc"), limit(3));
+		const posts = (await getDocs(postQuery)).docs.map(
+			(post) => ({ id: post.id, ...post.data() } as Post)
+		);
+		return posts;
+	},
+	closeCrowdfund: async function (crowdfundId: string) {
+		const crowdfundRef = doc(firestore, "Crowdfund", crowdfundId);
+		await updateDoc(crowdfundRef, {
+			isActive: false,
+		});
 	},
 };
 

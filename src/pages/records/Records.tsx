@@ -48,7 +48,7 @@ const Records = () => {
 						sx={{ width: "fit-content" }}
 						onClick={toggleGroupRecordCreationDialog}
 					>
-						Add new group record
+						Add new group transaction
 					</Button>
 				)}
 			</Stack>

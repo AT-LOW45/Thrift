@@ -6,13 +6,15 @@ import { MultiStep } from "./context/MultiStepContext";
 import { NotFound, Overview } from "./pages";
 import BudgetPlanDetails from "./pages/budget/BudgetPlanDetails";
 import Budgets from "./pages/budget/Budgets";
-import Community from "./pages/community/Community";
+import Community from "./pages/Community";
 import GroupPlanning from "./pages/group/GroupPlanning";
 import Login from "./pages/Login";
 import Transactions from "./pages/records/Records";
 import AccountConfiguration from "./pages/register/AccountConfiguration";
 import ProfileConfiguration from "./pages/register/ProfileConfiguration";
 import Register, { RegisterSchemaDefaults } from "./pages/register/Register";
+import Account from "./pages/Account";
+import UserProfile from "./pages/UserProfile";
 
 function App() {
 	// authenticate user before routing
@@ -44,6 +46,8 @@ function App() {
 						<Route path='/transactions' element={<Transactions />} />
 						<Route path='/community' element={<Community />} />
 						<Route path='/group-planning' element={<GroupPlanning />} />
+						<Route path='/accounts' element={<Account />} />
+						<Route path='/profile/:profileId' element={<UserProfile />} />
 					</Route>
 					<Route path='*' element={<NotFound />} />
 				</Fragment>

@@ -6,12 +6,27 @@ import { ChangeEvent, useState } from "react";
 import FormDialog, { FormDialogProps } from "../../../components/form/FormDialog";
 import { CrowdFund, CrowdfundSchemaDefaults } from "../community.schema";
 import communityService from "../community.service";
+import { ZodError } from "zod";
 
 type CrowdfundCreationDialogProps = Pick<FormDialogProps, "toggleModal" | "open">;
 
 const CrowdfundCreationDialog = ({ open, toggleModal }: CrowdfundCreationDialogProps) => {
 	const [crowdfund, setCrowdfund] = useState<CrowdFund>(CrowdfundSchemaDefaults.parse({}));
 	const [isValid, setIsValid] = useState(false);
+	const [errorMessages, setErrorMessages] =
+		useState<ZodError<CrowdFund>["formErrors"]["fieldErrors"]>();
+
+	const validateState = (crowdfund: CrowdFund) => {
+		const result = communityService.validateCrowdfund(crowdfund);
+
+		if (result === true) {
+			setErrorMessages(undefined);
+			setIsValid(true);
+		} else {
+			setErrorMessages(result);
+			setIsValid(false);
+		}
+	};
 
 	const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
 		setCrowdfund((fund) => {
@@ -21,7 +36,7 @@ const CrowdfundCreationDialog = ({ open, toggleModal }: CrowdfundCreationDialogP
 					: event.target.value;
 
 			const updated = { ...fund, [event.target.name]: value };
-			setIsValid(communityService.validateCrowdfund(updated));
+			validateState(updated);
 			return updated;
 		});
 	};
@@ -30,7 +45,7 @@ const CrowdfundCreationDialog = ({ open, toggleModal }: CrowdfundCreationDialogP
 		if (date !== null) {
 			setCrowdfund((fund) => {
 				const updated = { ...fund, endDate: date.toDate() } as CrowdFund;
-				setIsValid(communityService.validateCrowdfund(updated));
+				validateState(updated);
 				return updated;
 			});
 		}
@@ -54,6 +69,7 @@ const CrowdfundCreationDialog = ({ open, toggleModal }: CrowdfundCreationDialogP
 					Initiate
 				</Button>,
 			]}
+			title="Crowdfund Creation"
 		>
 			<Stack spacing={3} alignItems='center'>
 				<DialogContentText>
@@ -62,7 +78,7 @@ const CrowdfundCreationDialog = ({ open, toggleModal }: CrowdfundCreationDialogP
 				</DialogContentText>
 				<TextField
 					label='Title'
-					helperText='Give your crowdfund an interesting title to draw attention'
+					helperText={errorMessages?.name ? errorMessages.name : ""}
 					variant='standard'
 					name='name'
 					onChange={handleChange}
@@ -73,7 +89,7 @@ const CrowdfundCreationDialog = ({ open, toggleModal }: CrowdfundCreationDialogP
 				<TextField
 					variant='standard'
 					label='Target amount'
-					helperText='Set a reasonable goal for your crowdfund'
+					helperText={errorMessages?.targetAmount ? errorMessages.targetAmount : ""}
 					name='targetAmount'
 					onChange={handleChange}
 					value={isNaN(crowdfund.targetAmount) ? "" : crowdfund.targetAmount}
@@ -86,7 +102,7 @@ const CrowdfundCreationDialog = ({ open, toggleModal }: CrowdfundCreationDialogP
 					required
 					name='description'
 					onChange={handleChange}
-					helperText='Describe your crowdfund with ample detail to gather people in your cause'
+					helperText={errorMessages?.description ? errorMessages.description : ""}
 					value={crowdfund.description}
 					label='Description'
 					sx={{ minWidth: "50%" }}

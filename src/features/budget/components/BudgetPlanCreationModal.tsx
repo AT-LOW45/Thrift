@@ -66,6 +66,7 @@ const BudgetPlanCreationModal = ({
 					)}
 				</Fragment>,
 			]}
+			title="Budget Plan Creation"
 		>
 			<Stepper sx={{}} activeStep={currentStepIndex} alternativeLabel>
 				{steps.map((label) => (

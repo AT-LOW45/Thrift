@@ -1,10 +1,10 @@
 import AddIcon from "@mui/icons-material/Add";
 import { Box, Fab, Tab, Tabs, Tooltip } from "@mui/material";
 import React, { useState } from "react";
-import { TabPanel } from "../../components";
-import CrowdfundCampaign from "../../features/community/components/CrowdfundCampaign";
-import Feed from "../../features/community/components/Feed";
-import PostCreationDialog from "../../features/community/components/PostCreationDialog";
+import { TabPanel } from "../components";
+import CrowdfundCampaign from "../features/community/components/CrowdfundCampaign";
+import Feed from "../features/community/components/Feed";
+import PostCreationDialog from "../features/community/components/PostCreationDialog";
 
 const Community = () => {
 	const [currentTab, setCurrentTab] = useState(0);

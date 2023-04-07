@@ -1,7 +1,6 @@
 import AddIcon from "@mui/icons-material/Add";
 import { Box, Button, Stack, Typography } from "@mui/material";
 import Grid2 from "@mui/material/Unstable_Grid2";
-import { getAuth } from "firebase/auth";
 import { collection, getDocs, getFirestore, onSnapshot, query, where } from "firebase/firestore";
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";
@@ -14,6 +13,7 @@ import PlanOverview from "../../features/budget/components/budget_plan_creation/
 import Threshold from "../../features/budget/components/budget_plan_creation/Threshold";
 import { Transaction } from "../../features/transaction/transaction.schema";
 import app from "../../firebaseConfig";
+import finance from "../../assets/finance.png";
 
 const Budgets = () => {
 	const [modalOpen, setModalOpen] = useState(false);
@@ -33,40 +33,51 @@ const Budgets = () => {
 			const transactionRef = collection(firestore, "Transaction");
 
 			const budgetPlanStream = onSnapshot(budgetPlanQuery, async (snapshot) => {
-				const result = snapshot.docs.map(
-					(doc) => ({ id: doc.id, ...doc.data() } as BudgetPlan)
-				);
+				if (snapshot.docs.length > 0) {
+					const result = snapshot.docs.map(
+						(doc) => ({ id: doc.id, ...doc.data() } as BudgetPlan)
+					);
 
-				const plans = await Promise.all(
-					result.map(async (plan) => {
-						const transactionQuery = query(
-							transactionRef,
-							where("budgetPlanId", "==", plan.id)
-						);
-						const transactions = (await getDocs(transactionQuery)).docs.map(
-							(transac) => transac.data() as Transaction
-						);
+					const firstDayOfMonth = new Date(
+						new Date().getFullYear(),
+						new Date().getMonth(),
+						1
+					);
 
-						const amountToDeduct = transactions.map((transac) =>
-							"amount" in transac ? transac.amount : 0
-						);
+					const plans = await Promise.all(
+						result.map(async (plan) => {
+							const transactionQuery = query(
+								transactionRef,
+								where("budgetPlanId", "==", plan.id),
+								where("transactionDate", ">=", firstDayOfMonth),
+								where("transactionDate", "<=", new Date())
+							);
+							const transactions = (await getDocs(transactionQuery)).docs.map(
+								(transac) => transac.data() as Transaction
+							);
 
-						const amountLeftCurrency =
-							plan.spendingLimit -
-							amountToDeduct.reduce((prev, cur) => prev + cur, 0);
+							const amountToDeduct = transactions.map((transac) =>
+								"amount" in transac ? transac.amount : 0
+							);
 
-						const amountLeftPercentage = Math.round(
-							((plan.spendingLimit - amountLeftCurrency) / plan.spendingLimit) * 100
-						);
+							const amountLeftCurrency =
+								plan.spendingLimit -
+								amountToDeduct.reduce((prev, cur) => prev + cur, 0);
 
-						return {
-							amountLeftCurrency,
-							amountLeftPercentage,
-							...plan,
-						} as BudgetPlan;
-					})
-				);
-				setBudgetPlans(plans);
+							const amountLeftPercentage = Math.round(
+								((plan.spendingLimit - amountLeftCurrency) / plan.spendingLimit) *
+									100
+							);
+
+							return {
+								amountLeftCurrency,
+								amountLeftPercentage,
+								...plan,
+							} as BudgetPlan;
+						})
+					);
+					setBudgetPlans(plans);
+				}
 			});
 			return budgetPlanStream;
 		};
@@ -97,9 +108,16 @@ const Budgets = () => {
 			</Stack>
 
 			<Grid2 container sx={{ mx: 0, mt: 3, p: 3 }} spacing={3}>
-				{budgetPlans.map((plan) => (
-					<BudgetPlanTray budgetPlan={plan} key={plan.id} />
-				))}
+				{budgetPlans.length === 0 ? (
+					<Stack spacing={2} justifyContent="center" alignItems="center">
+						<img src={finance} alt='finance' style={{height: "auto", width: "50%"}} />
+						<Typography variant='regularSubHeading'>
+							You don't have any budget plans yet.
+						</Typography>
+					</Stack>
+				) : (
+					budgetPlans.map((plan) => <BudgetPlanTray budgetPlan={plan} key={plan.id} />)
+				)}
 			</Grid2>
 			<MultiStep
 				defaultValues={BudgetPlanSchemaDefaults.parse({})}

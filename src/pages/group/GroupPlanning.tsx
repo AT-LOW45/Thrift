@@ -23,6 +23,7 @@ const GroupPlanning = () => {
 
 			if (groupId !== "") {
 				const foundGroup = await groupService.find(groupId);
+
 				setIsOwner(foundGroup.owner === user?.uid ? true : false);
 				setGroup(foundGroup);
 			}

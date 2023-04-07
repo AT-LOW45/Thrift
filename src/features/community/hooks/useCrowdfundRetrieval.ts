@@ -21,6 +21,7 @@ const useCrowdfundRetrieval = () => {
 		currency: number;
 		percentage: number;
 	}>({ currency: 0, percentage: 0 });
+	const [crowdfundCloseConfirmationOpen, setCrowdfundCloseConfirmationOpen] = useState(false);
 
 	useEffect(() => {
 		const findCrowdfund = async () => {
@@ -29,10 +30,11 @@ const useCrowdfundRetrieval = () => {
 			setMyCrowdfund(myCrowdfund);
 		};
 		findCrowdfund();
-	}, []);
+	}, [firestoreCollection]);
 
 	const toggleDialog = () => setDialogOpen((open) => !open);
 	const toggleCreationDialog = () => setCreationDialogOpen((open) => !open);
+	const toggleConfirmCloseDialog = () => setCrowdfundCloseConfirmationOpen((open) => !open);
 
 	const convertDate = (timestamp: FirestoreTimestampObject) => {
 		return new Date(timestamp.seconds * 1000).toLocaleDateString();
@@ -56,6 +58,11 @@ const useCrowdfundRetrieval = () => {
 		}
 	};
 
+	const closeCrowdfund = async (crowdfundId: string) => {
+		await communityService.closeCrowdfund(crowdfundId);
+		toggleConfirmCloseDialog()
+	};
+
 	return {
 		firestoreCollection,
 		myCrowdfund,
@@ -63,10 +70,13 @@ const useCrowdfundRetrieval = () => {
 		dialogOpen,
 		creationDialogOpen,
 		selectedCrowdfundCumulativeAmount,
+		crowdfundCloseConfirmationOpen,
 		toggleCreationDialog,
 		convertDate,
+		toggleConfirmCloseDialog,
 		findSelectedCrowdfund,
 		toggleDialog,
+		closeCrowdfund,
 	};
 };
 

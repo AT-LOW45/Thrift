@@ -1,4 +1,5 @@
 import { useState, useEffect, ChangeEvent } from "react";
+import { ZodError } from "zod";
 import { useEditable } from "../../../context/EditableContext";
 import transactionService from "../../transaction/transaction.service";
 import { BudgetPlan } from "../budget.schema";
@@ -10,6 +11,8 @@ const useBudgetOverviewEdit = () => {
 	const [allocationData, setAllocationData] = useState<
 		{ field: string; amount: number; colour: string }[]
 	>([]);
+	const [errorMessages, setErrorMessages] =
+		useState<ZodError<BudgetPlan>["formErrors"]["fieldErrors"]>();
 
 	useEffect(() => {
 		const getAmountSpent = async () => {
@@ -52,13 +55,24 @@ const useBudgetOverviewEdit = () => {
 		});
 	};
 
+	const validateState = (budgetPlan: BudgetPlan) => {
+		const result = budgetService.validatePlanPartial(budgetPlan);
+		if (result === true) {
+			setErrorMessages(undefined);
+			return true;
+		} else {
+			setErrorMessages(result);
+			return false;
+		}
+	};
+
 	const handleLimit = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
 		updateContext({ key: "spendingLimit", value: parseInt(event.target.value) }, (plan) => [
-			budgetService.validatePlanPartial(plan),
+			validateState(plan),
 		]);
 
 	const handleNote = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-		updateContext(event, (plan) => [budgetService.validatePlanPartial(plan)]);
+		updateContext(event, (plan) => [validateState(plan)]);
 
 	const getMathOperator = (index: number, array: typeof allocationData): string => {
 		if (index === array.length - 1) return "";
@@ -69,12 +83,13 @@ const useBudgetOverviewEdit = () => {
 		setFormContext,
 		formData,
 		placeholderFormData,
+		errorMessages,
 		updateContext,
 		allocationData,
 		handleSliderChange,
 		getMathOperator,
 		handleLimit,
-		handleNote
+		handleNote,
 	};
 };
 

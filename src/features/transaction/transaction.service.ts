@@ -11,6 +11,7 @@ import {
 	limit,
 	orderBy,
 	query,
+	QueryConstraint,
 	updateDoc,
 	where,
 } from "firebase/firestore";
@@ -28,14 +29,20 @@ import {
 import app from "../../firebaseConfig";
 import paymentInfoService from "../payment_info/paymentInfo.service";
 import { getAuth } from "firebase/auth";
+import { ZodError } from "zod";
 
 interface TransactionServiceProvider
 	extends Omit<ThriftServiceProvider<Transaction | Income>, "addDoc"> {
-	validateRecordDetails(record: Transaction | Income): boolean;
+	validateRecordDetails(
+		record: Transaction | Income
+	): true | ZodError<Transaction | Income>["formErrors"]["fieldErrors"];
+	findMostRecentRecord(): Promise<Transaction | Income | null>;
 	getMyTransactions(budgetPlanId: string): Promise<Transaction[]>;
 	addRecord(record: Transaction | Income): Promise<string | boolean>;
 	getGroupTransactions(groupId: string): Promise<GroupTransaction[]>;
-	validateGroupRecordDetails(record: GroupTransaction | GroupIncome): boolean;
+	validateGroupRecordDetails(
+		record: GroupTransaction | GroupIncome
+	): true | ZodError<GroupIncome | GroupTransaction>["formErrors"]["fieldErrors"];
 	addGroupTransaction(
 		record: GroupTransaction,
 		transactionLimit: number
@@ -45,6 +52,7 @@ interface TransactionServiceProvider
 		groupId: string
 	): Promise<{ pendingTransactions: GroupTransaction[]; memberCount: number }>;
 	decideTransactionStatus(transactionId: string, decision: boolean): Promise<boolean>;
+	getChartSummary(...queryConstraints: QueryConstraint[]): Promise<Transaction[]>;
 }
 
 const firestore = getFirestore(app);
@@ -100,16 +108,23 @@ const transactionService: TransactionServiceProvider = {
 				? TransactionSchema.safeParse(record)
 				: IncomeSchema.safeParse(record);
 
-		return result.success;
+		if (result.success === true) {
+			return true;
+		} else {
+			return result.error.formErrors.fieldErrors;
+		}
 	},
 	getMyTransactions: async function (budgetPlanId: string) {
 		const personalAccounts = await paymentInfoService.getPersonalAccounts();
+		const firstDayOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 
 		const recordRef = collection(firestore, "Transaction");
 		const recordQuery = query(
 			recordRef,
 			where("accountId", "in", [...personalAccounts.map((acc) => acc.id)]),
-			where("budgetPlanId", "==", budgetPlanId)
+			where("budgetPlanId", "==", budgetPlanId),
+			where("transactionDate", ">=", firstDayOfMonth),
+			where("transactionDate", "<=", new Date())
 		);
 
 		return (await getDocs(recordQuery)).docs.map(
@@ -133,7 +148,8 @@ const transactionService: TransactionServiceProvider = {
 			"status" in record
 				? GroupTransactionSchema.safeParse(record)
 				: GroupIncomeSchema.safeParse(record);
-		return result.success;
+
+		return result.success === true ? true : result.error.formErrors.fieldErrors;
 	},
 	addGroupTransaction: async function (record: GroupTransaction, transactionLimit: number) {
 		const result = GroupTransactionSchema.safeParse(record);
@@ -228,6 +244,35 @@ const transactionService: TransactionServiceProvider = {
 				: true;
 
 		return transactionMade;
+	},
+	getChartSummary: async function (...queryConstraints: QueryConstraint[]) {
+		const recordRef = collection(firestore, "Transaction");
+		const recordQuery = query(recordRef, ...queryConstraints);
+
+		const isTransaction = (record: object): record is Transaction => "budgetPlanId" in record;
+
+		const records = (await getDocs(recordQuery)).docs
+			.map((snapshot) => ({ id: snapshot.id, ...snapshot.data() } as Transaction | Income))
+			.filter(isTransaction);
+
+		return records;
+	},
+	findMostRecentRecord: async function () {
+		const personalAccounts = await paymentInfoService.getPersonalAccounts();
+		const recordRef = collection(firestore, "Transaction");
+		const recordQuery = query(
+			recordRef,
+			where("accountId", "in", [...personalAccounts.map((acc) => acc.id)]),
+			orderBy("transactionDate", "desc"),
+			limit(1)
+		);
+
+		const recordDoc = (await getDocs(recordQuery)).docs;
+		if (recordDoc.length === 0) {
+			return null;
+		} else {
+			return { id: recordDoc[0].id, ...recordDoc[0].data() } as Transaction | Income;
+		}
 	},
 };
 

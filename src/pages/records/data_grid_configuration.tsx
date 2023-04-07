@@ -95,7 +95,7 @@ const data_grid_configuration = (openDialog: (recordId: string) => void) => {
 							color: `${
 								params.row.status === false
 									? "rgb(176, 142, 7)"
-									: "rgb(rgb(207, 0, 0))"
+									: "rgb(207, 0, 0)"
 							}`,
 							px: 2,
 							py: 1,
@@ -105,7 +105,7 @@ const data_grid_configuration = (openDialog: (recordId: string) => void) => {
 						component='p'
 					>
 						RM {params.row.amount}
-						<TrendingFlatIcon />
+						{params.row.status === true ? <TrendingDownIcon /> : < TrendingFlatIcon/>}
 					</Typography>
 				);
 			},
