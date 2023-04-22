@@ -14,7 +14,7 @@ export const TransactionSchema = zod.object({
 	description: zod.string().optional(),
 	category: ChipOptionsSchema,
 	amount: zod
-		.number()
+		.number({ invalid_type_error: "Please provide an amount" })
 		.nonnegative({ message: "You can't create a record with a negative amount" })
 		.gt(0, { message: "You can't create a record of RM 0" }),
 	budgetPlanId: zod

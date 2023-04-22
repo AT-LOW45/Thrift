@@ -56,13 +56,21 @@ const Budgets = () => {
 								(transac) => transac.data() as Transaction
 							);
 
+							const plannedPaymentsAmount =
+								plan.plannedPayments === null
+									? 0
+									: plan.plannedPayments
+											.map((planned) => planned.amount)
+											.reduce((prev, cur) => prev + cur, 0);
+
 							const amountToDeduct = transactions.map((transac) =>
 								"amount" in transac ? transac.amount : 0
 							);
 
 							const amountLeftCurrency =
 								plan.spendingLimit -
-								amountToDeduct.reduce((prev, cur) => prev + cur, 0);
+								amountToDeduct.reduce((prev, cur) => prev + cur, 0) -
+								plannedPaymentsAmount;
 
 							const amountLeftPercentage = Math.round(
 								((plan.spendingLimit - amountLeftCurrency) / plan.spendingLimit) *
@@ -109,8 +117,8 @@ const Budgets = () => {
 
 			<Grid2 container sx={{ mx: 0, mt: 3, p: 3 }} spacing={3}>
 				{budgetPlans.length === 0 ? (
-					<Stack spacing={2} justifyContent="center" alignItems="center">
-						<img src={finance} alt='finance' style={{height: "auto", width: "50%"}} />
+					<Stack spacing={2} justifyContent='center' alignItems='center'>
+						<img src={finance} alt='finance' style={{ height: "auto", width: "50%" }} />
 						<Typography variant='regularSubHeading'>
 							You don't have any budget plans yet.
 						</Typography>

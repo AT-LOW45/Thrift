@@ -14,9 +14,13 @@ import useRealtimeUpdate from "../../../hooks/useRealtimeUpdate";
 import { FirestoreTimestampObject } from "../../../service/thrift";
 import { Post, PostSchemaDefaults } from "../community.schema";
 import PostDetailsDialog from "./PostDetailsDialog";
+import { orderBy } from "firebase/firestore";
 
 const Feed = () => {
-	const { firestoreCollection } = useRealtimeUpdate<Post>({ data: { collection: "Post" } });
+	const { firestoreCollection } = useRealtimeUpdate<Post>(
+		{ data: { collection: "Post" } },
+		orderBy("datePosted", "desc")
+	);
 	const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
 	const [post, setPost] = useState<Post>(PostSchemaDefaults.parse({}));
 
@@ -30,27 +34,10 @@ const Feed = () => {
 		}
 	};
 
-	const sortPostByDescendingDate = (prev: Post, next: Post) => {
-		const convertDate = (timestamp: FirestoreTimestampObject) => {
-			return new Date(timestamp.seconds * 1000);
-		};
-		return (
-			convertDate(next.datePosted as FirestoreTimestampObject).getTime() -
-			convertDate(prev.datePosted as FirestoreTimestampObject).getTime()
-		);
-	};
-
-	const returnSortedPosts = (posts: Post[]) => {
-		// create a copy of the posts array using the slice() method. This is important because sort() mutates the original array, and we don't want to modify the original array.
-		const sorted = posts.slice().sort(sortPostByDescendingDate).slice(0, 3);
-		const sortedArray = [...sorted];
-		return sortedArray;
-	};
-
 	return (
 		<Box display='flex'>
 			<Stack direction='column' flexGrow={1} spacing={5}>
-				{firestoreCollection.map((post, index) => (
+				{firestoreCollection.map((post) => (
 					<Card sx={{ maxWidth: 600, maxHeight: 600 }} key={post.id}>
 						<CardActionArea onClick={() => findPost(post.id)}>
 							{post.mediaAttachment && (
@@ -90,23 +77,12 @@ const Feed = () => {
 				))}
 			</Stack>
 			<Box flexGrow={1} sx={{ display: { xs: "none", lg: "flex" } }}>
-				<Stack
-					direction='column'
-					spacing={2}
-					sx={{ position: "sticky", top: 0, pr: 3 }}
-					// flexGrow={1}
-					
-				>
+				<Stack direction='column' spacing={2} sx={{ position: "sticky", top: 0, pr: 3 }}>
 					<Typography textAlign='right' variant='regularSubHeading'>
 						Recent Activities
 					</Typography>
-					{returnSortedPosts(firestoreCollection).map((post) => (
-						<Stack
-							direction='row'
-							
-							spacing={2}
-							key={post.id}
-						>
+					{firestoreCollection.slice(0, 3).map((post) => (
+						<Stack direction='row' spacing={2} key={post.id}>
 							<Avatar>{post.postedBy.charAt(0).toUpperCase()}</Avatar>
 							<Stack
 								direction='column'

@@ -15,6 +15,7 @@ import ProfileConfiguration from "./pages/register/ProfileConfiguration";
 import Register, { RegisterSchemaDefaults } from "./pages/register/Register";
 import Account from "./pages/Account";
 import UserProfile from "./pages/UserProfile";
+import Notifications from "./pages/Notifications";
 
 function App() {
 	// authenticate user before routing
@@ -22,6 +23,10 @@ function App() {
 	const { user } = useContext(AuthContext);
 	const navigate = useNavigate();
 
+	/**
+	 * 1. user will be redirected to the "Login" page if firebase authentication does not detect a user session
+	 * 2. if it does, the user will navigate to the overview page by default
+	 */
 	useEffect(() => {
 		const changeRoute = () => {
 			if (user === null) {
@@ -39,6 +44,7 @@ function App() {
 		<Routes>
 			{isLoggedIn ? (
 				<Fragment>
+					{/* all routes and pages available to the user once logged in */}
 					<Route path='/' element={<DashboardLayout />}>
 						<Route path='/overview' element={<Overview />} />
 						<Route path='/budgets' element={<Budgets />} />
@@ -47,11 +53,13 @@ function App() {
 						<Route path='/community' element={<Community />} />
 						<Route path='/group-planning' element={<GroupPlanning />} />
 						<Route path='/accounts' element={<Account />} />
+						<Route path="/notifications" element={<Notifications />} />
 						<Route path='/profile/:profileId' element={<UserProfile />} />
 					</Route>
 					<Route path='*' element={<NotFound />} />
 				</Fragment>
 			) : (
+				// routes available to unregistered users or users who are not logged in
 				<Route path='/' element={<PlainLayout />}>
 					<Route index element={<Login />} />
 					<Route

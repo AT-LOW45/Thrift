@@ -19,7 +19,7 @@ const InfoBar = ({ infoBarOpen, setInfoBarOpen, type, message }: InfoBarProps) =
 	};
 
 	return (
-		<Snackbar open={infoBarOpen} autoHideDuration={5000}>
+		<Snackbar open={infoBarOpen} autoHideDuration={5000} onClose={handleClose}>
 			<Alert
 				severity={type}
 				variant='filled'

@@ -29,6 +29,9 @@ const useCreateRecord = (toggleModal: () => void) => {
 	const [budgets, setBudgets] = useState<{ bud: ChipOptions; amount: number }[]>([]);
 	const [errorMessages, setErrorMessages] =
 		useState<ZodError<Transaction | Income>["formErrors"]["fieldErrors"]>();
+	const [successInfoBarOpen, setSuccessInfoBarOpen] = useState(false);
+	const [errorInfoBarOpen, setErrorInfoBarOpen] = useState(false);
+	const [newRecordId, setNewRecordId] = useState("");
 	const { user } = useContext(AuthContext);
 
 	const validateRecord = (record: Transaction | Income): boolean => {
@@ -50,13 +53,15 @@ const useCreateRecord = (toggleModal: () => void) => {
 	useEffect(() => {
 		const getPlans = async () => {
 			const budgetPlans = await budgetService.readAll();
-			// budgetPlans.length > 0 &&
-			// 	setRecord((record) => ({ budgetPlanName: budgetPlans[0].name, ...record }));
 			setBudgetPlans(budgetPlans);
 
 			const firestore = getFirestore(app);
 			const paymentInfoRef = collection(firestore, "PaymentInfo");
-			const paymentInfoQuery = query(paymentInfoRef, where("userUid", "==", user?.uid));
+			const paymentInfoQuery = query(
+				paymentInfoRef,
+				where("userUid", "==", user?.uid),
+				where("isActive", "==", true)
+			);
 
 			const paymentInfoStream = onSnapshot(paymentInfoQuery, (snapshot) => {
 				const result = snapshot.docs.map(
@@ -228,11 +233,13 @@ const useCreateRecord = (toggleModal: () => void) => {
 	const handleSubmit = async () => {
 		const result = await transactionService.addRecord(record);
 		if (typeof result === "string") {
+			toggleModal();
+			setNewRecordId(result);
+			setSuccessInfoBarOpen(true);
 			setRecord(TransactionSchemaDefaults.parse({}));
 			setBudgets([]);
-			toggleModal();
 		} else {
-			console.log("transaction error");
+			setErrorInfoBarOpen(true);
 		}
 	};
 
@@ -252,6 +259,11 @@ const useCreateRecord = (toggleModal: () => void) => {
 		balance,
 		budgets,
 		errorMessages,
+		successInfoBarOpen,
+		setSuccessInfoBarOpen,
+		errorInfoBarOpen,
+		setErrorInfoBarOpen,
+		newRecordId,
 		addLabel,
 		removeLabel,
 		changeRecordType,

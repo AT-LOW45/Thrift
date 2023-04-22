@@ -22,17 +22,21 @@ const Login = () => {
 
 	const verifyLogin = async (event: FormEvent) => {
 		event.preventDefault();
-		const form = event.currentTarget as HTMLFormElement;
-		const email = (form[0] as HTMLInputElement).value;
-		const password = (form[1] as HTMLInputElement).value;
+		try {
+			const form = event.currentTarget as HTMLFormElement;
+			const email = (form[0] as HTMLInputElement).value;
+			const password = (form[1] as HTMLInputElement).value;
 
-		const result = await login(email, password);
+			const result = await login(email, password);
 
-		if (result === true) {
-			navigate("/overview");
-		}
+			if (result === true) {
+				navigate("/overview");
+			}
 
-		if (typeof result === "string") {
+			if (typeof result === "string") {
+				setInfoBarOpen(true);
+			}
+		} catch (error) {
 			setInfoBarOpen(true);
 		}
 	};
@@ -66,7 +70,13 @@ const Login = () => {
 			{/* banner */}
 			<LoginBanner>
 				<img src={thriftLogo} style={{ width: "auto", height: "400px" }} alt='' />
-				<Typography color='white' fontStyle='italic' fontSize='2rem' textAlign="center" px={5}>
+				<Typography
+					color='white'
+					fontStyle='italic'
+					fontSize='2rem'
+					textAlign='center'
+					px={5}
+				>
 					”Money is only a tool. It will take you wherever you wish, but it will not
 					replace you as the driver.”
 				</Typography>

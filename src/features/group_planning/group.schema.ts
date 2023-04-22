@@ -7,7 +7,7 @@ export const GroupSchema = zod.object({
 	spendingLimit: zod
 		.number({ invalid_type_error: "Please provide a spending limit" })
 		.nonnegative({ message: "Your group's spending limit cannot be a negative amount" })
-		.gt(200, { message: "The group spending limit must be at least RM200" }),
+		.gte(200, { message: "The group spending limit must be at least RM200" }),
 	transactionLimit: zod
 		.number({ invalid_type_error: "Please provide a transaction limit" })
 		.nonnegative({ message: "The transaction limit cannot be a negative amount" })

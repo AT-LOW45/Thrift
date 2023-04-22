@@ -31,9 +31,13 @@ import { ZodError } from "zod";
 type BudgetSetupProps = {
 	enabled: boolean;
 	setEnabled: Dispatch<SetStateAction<boolean>>;
+
 };
 
-const BudgetSetup = ({ enabled, setEnabled }: BudgetSetupProps) => {
+const BudgetSetup = ({
+	enabled,
+	setEnabled,
+}: BudgetSetupProps) => {
 	const { formData, updateContext, currentStepIndex } = useMultiStep<BudgetPlan>();
 	const [amountLeft, setAmountLeft] = useState(formData.spendingLimit);
 	const [catErrorMessage, setCatErrorMessage] =
@@ -161,6 +165,7 @@ const BudgetSetup = ({ enabled, setEnabled }: BudgetSetupProps) => {
 						))}
 					</Select>
 				</FormControl>
+
 				<TextField
 					sx={{ flexBasis: "50%" }}
 					type='number'

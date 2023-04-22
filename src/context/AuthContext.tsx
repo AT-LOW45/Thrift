@@ -17,7 +17,7 @@ import { Registration } from "../pages/register/Register";
 type AuthProps = { children: ReactNode };
 
 export type AuthContextType = {
-	signUpWithEmailAndPassword(registrationInfo: Registration): Promise<boolean>;
+	signUpWithEmailAndPassword(registrationInfo: Registration): Promise<string | boolean>;
 	login(email: string, password: string): Promise<string | boolean>;
 	logout(): Promise<void>;
 	user: User | null;
@@ -35,33 +35,41 @@ const Auth = ({ children }: AuthProps) => {
 		try {
 			// create user, then add user profile and payment info
 			const { email, password, interest, paymentInfo, username } = registrationInfo;
-			const userCredentials = await createUserWithEmailAndPassword(auth, email, password);
-			console.log(userCredentials.user.uid)
 
-			const profileResult = await profileService.addProfile({
-				username,
-				interest,
-				userUid: userCredentials.user.uid,
-				group: ""
-			} as Profile);
+			const allUsers = await profileService.readAll();
+			const usernameRegistered = allUsers.map((user) => user.username).includes(username);
 
-			const paymentInfoResult = await Promise.all(
-				paymentInfo.map(
-					async (info) =>
-						await paymentInfoService.addDoc({
-							...info,
-							userUid: userCredentials.user.uid,
-						} as PersonalAccount)
-				)
-			);
+			// the system does not support duplicate usernames
+			if (!usernameRegistered) {
+				const userCredentials = await createUserWithEmailAndPassword(auth, email, password);
 
-			const finalResult =
-				typeof profileResult !== "boolean" &&
-				paymentInfoResult.every((res) => typeof res !== "boolean");
+				const profileResult = await profileService.addProfile({
+					username,
+					interest,
+					userUid: userCredentials.user.uid,
+					group: "",
+				} as Profile);
 
-			return finalResult;
+				const paymentInfoResult = await Promise.all(
+					paymentInfo.map(
+						async (info) =>
+							await paymentInfoService.addDoc({
+								...info,
+								userUid: userCredentials.user.uid,
+							} as PersonalAccount)
+					)
+				);
+
+				const finalResult =
+					typeof profileResult !== "boolean" &&
+					paymentInfoResult.every((res) => typeof res !== "boolean");
+
+				return finalResult;
+			} else {
+				throw new Error(`The username '${username}' has been taken. Please choose another`);
+			}
 		} catch (exception) {
-			return false;
+			return exception instanceof Error ? exception.message : false;
 		}
 	};
 

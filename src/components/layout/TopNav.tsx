@@ -1,11 +1,15 @@
 import MenuIcon from "@mui/icons-material/Menu";
 import { AppBar, Box, IconButton, styled, SxProps, Toolbar } from "@mui/material";
-import { useContext } from "react";
+import { Fragment, useContext } from "react";
 import DrawerContext from "./DrawerContext";
 import NotificationsMenu from "./NotificationsMenu";
 import ProfileMenu from "./ProfileMenu";
+import { AuthContext } from "../../context/AuthContext";
 
 const TopNav = () => {
+	const { user } = useContext(AuthContext);
+	const { handleDrawerToggle } = useContext(DrawerContext);
+
 	const CustomAppBar = styled(AppBar)(({ theme }) => ({
 		backgroundColor: "rgba(255, 255, 255, 0.3)",
 		backdropFilter: "blur(2px)",
@@ -16,8 +20,6 @@ const TopNav = () => {
 		boxShadow: "none",
 		borderBottom: "1px solid lightgray",
 	}));
-
-	const { handleDrawerToggle } = useContext(DrawerContext);
 
 	return (
 		<CustomAppBar>
@@ -31,9 +33,13 @@ const TopNav = () => {
 				>
 					<MenuIcon />
 				</IconButton>
-				<Box sx={{ ml: "auto", display: "flex" }}>
-					<NotificationsMenu />
-					<ProfileMenu />
+				<Box sx={{ ml: "auto", display: "flex", py: 2 }}>
+					{user !== null && (
+						<Fragment>
+							<NotificationsMenu />
+							<ProfileMenu />
+						</Fragment>
+					)}
 				</Box>
 			</Toolbar>
 		</CustomAppBar>

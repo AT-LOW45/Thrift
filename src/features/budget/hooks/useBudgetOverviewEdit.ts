@@ -6,11 +6,12 @@ import { BudgetPlan } from "../budget.schema";
 import budgetService from "../budget.service";
 
 const useBudgetOverviewEdit = () => {
-	const { setFormContext, handleInputChange, formData, placeholderFormData, updateContext } =
+	const { setFormContext, formData, placeholderFormData, updateContext } =
 		useEditable<BudgetPlan>();
 	const [allocationData, setAllocationData] = useState<
 		{ field: string; amount: number; colour: string }[]
 	>([]);
+	const [amountUsed, setAmountUsed] = useState(0);
 	const [errorMessages, setErrorMessages] =
 		useState<ZodError<BudgetPlan>["formErrors"]["fieldErrors"]>();
 
@@ -24,7 +25,8 @@ const useBudgetOverviewEdit = () => {
 						.map((planned) => planned.amount)
 						.reduce((prev, cur) => prev + cur, 0)
 				: 0;
-			const overallAmountLeft = await budgetService.getRemainingOverallAmount(formData.id!);
+			const { amountLeftCurrency, amountLeftPercentage } =
+				await budgetService.getRemainingOverallAmount(formData.id!);
 
 			setAllocationData([
 				{ field: "Allocated", amount: formData.spendingLimit, colour: "black" },
@@ -32,10 +34,12 @@ const useBudgetOverviewEdit = () => {
 				{ field: "Planned Payments", amount: plannedPayments, colour: "#F8964C" },
 				{
 					field: "Remaining",
-					amount: overallAmountLeft.amountLeftCurrency,
+					amount: amountLeftCurrency,
 					colour: "green",
 				},
 			]);
+
+			setAmountUsed(amountLeftPercentage);
 		};
 		getAmountSpent();
 	}, [formData]);
@@ -84,6 +88,7 @@ const useBudgetOverviewEdit = () => {
 		formData,
 		placeholderFormData,
 		errorMessages,
+		amountUsed,
 		updateContext,
 		allocationData,
 		handleSliderChange,

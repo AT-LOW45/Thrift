@@ -73,7 +73,7 @@ const ResponsiveDrawer = () => {
 	return (
 		<Box
 			component='nav'
-			sx={{ width: { sm: 240 }, flexShrink: { sm: 0 } }}
+			sx={{ width: { sm: 240 }, flexShrink: { sm: 0 }, zIndex: 10 }}
 			aria-label='mailbox folders'
 		>
 			<Drawer

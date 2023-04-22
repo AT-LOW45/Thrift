@@ -18,6 +18,9 @@ const useCreateGroupRecord = (group: Group, toggleModal: () => void) => {
 	const { user } = useContext(AuthContext);
 	const [groupTransacConfirmationDialogOpen, setGroupTransacConfirmationDialogOpen] =
 		useState(false);
+	const [successInfoBarOpen, setSuccessInfoBarOpen] = useState(false);
+	const [errorInfoBarOpen, setErrorInfoBarOpen] = useState(false);
+	const [newRecordId, setNewRecordId] = useState("");
 	const [errorMessages, setErrorMessages] =
 		useState<ZodError<GroupTransaction>["formErrors"]["fieldErrors"]>();
 
@@ -103,8 +106,15 @@ const useCreateGroupRecord = (group: Group, toggleModal: () => void) => {
 			const result = await submitRecordRequest();
 			if (typeof result === "string") {
 				toggleModal();
+				if (groupTransacConfirmationDialogOpen === true) {
+					toggleConfirmationDialog();
+				}
+
+				setNewRecordId(result);
+				setSuccessInfoBarOpen(true);
+				setGroupTransaction(GroupTransactionSchemaDefaults.parse({}));
 			} else {
-				console.log("unable to add group transaction");
+				setErrorInfoBarOpen(true);
 			}
 		}
 	};
@@ -120,9 +130,15 @@ const useCreateGroupRecord = (group: Group, toggleModal: () => void) => {
 		const result = await submitRecordRequest();
 		if (typeof result === "string") {
 			toggleModal();
-			toggleConfirmationDialog();
+			if (groupTransacConfirmationDialogOpen === true) {
+				toggleConfirmationDialog();
+			}
+
+			setNewRecordId(result);
+			setSuccessInfoBarOpen(true);
+			setGroupTransaction(GroupTransactionSchemaDefaults.parse({}));
 		} else {
-			console.log("unable to add group transaction");
+			setErrorInfoBarOpen(true);
 		}
 	};
 
@@ -136,6 +152,11 @@ const useCreateGroupRecord = (group: Group, toggleModal: () => void) => {
 		label,
 		groupTransacConfirmationDialogOpen,
 		errorMessages,
+		successInfoBarOpen,
+		errorInfoBarOpen,
+		newRecordId,
+		setSuccessInfoBarOpen,
+		setErrorInfoBarOpen,
 		testAuto,
 		testAutoFree,
 		removeLabel,
@@ -144,6 +165,7 @@ const useCreateGroupRecord = (group: Group, toggleModal: () => void) => {
 		proceedWithTransac,
 		confirmTransaction,
 		toggleConfirmationDialog,
+		setGroupTransaction,
 	};
 };
 

@@ -39,6 +39,10 @@ interface BudgetServiceProvider extends ThriftServiceProvider<BudgetPlan> {
 	): Promise<{ amountLeftCurrencyCat: number; amountLeftPercentageCat: number }>;
 	updateBudgetPlan(budgetPlan: BudgetPlan, fields: Partial<BudgetPlan>): Promise<boolean>;
 	addNewBudgets(budgetPlanId: string, newItems: Category[]): Promise<boolean>;
+	addNewPlannedPayments(
+		budgetPlanId: string,
+		newPlannedPayments: PlannedPayment[]
+	): Promise<boolean>;
 	findMyPlans(): Promise<BudgetPlan[]>;
 	closeBudgetPlan(budgetPlanId: string): Promise<void>;
 }
@@ -204,7 +208,7 @@ const budgetService: BudgetServiceProvider = {
 	addNewBudgets: async function (budgetPlanId: string, newBudgets: Category[]) {
 		const budgetPlanRef = doc(firestore, "BudgetPlan", budgetPlanId);
 		const result = newBudgets.every(this.validateCategory);
-		if (result) {
+		if (result === true) {
 			const idRemoved = newBudgets.map((budgets) => {
 				const { id, amountLeftCurrency, amountLeftPercentage, ...rest } = budgets;
 				return rest;
@@ -230,6 +234,28 @@ const budgetService: BudgetServiceProvider = {
 		await updateDoc(budgetPlanRef, {
 			isActive: false,
 		});
+	},
+	addNewPlannedPayments: async function (
+		budgetPlanId: string,
+		newPlannedPayments: PlannedPayment[]
+	) {
+		const budgetPlanRef = doc(firestore, "BudgetPlan", budgetPlanId);
+		const result = newPlannedPayments.every(this.validatePlannedPayment);
+
+		if (result === true) {
+			const idRemoved = newPlannedPayments.map((planned) => {
+				const { id, ...rest } = planned;
+				return rest;
+			});
+
+			await updateDoc(budgetPlanRef, {
+				plannedPayments: arrayUnion(...idRemoved),
+			});
+
+			return true;
+		} else {
+			return false;
+		}
 	},
 };
 

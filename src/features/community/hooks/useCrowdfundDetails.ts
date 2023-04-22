@@ -19,6 +19,9 @@ const useCrowdfundDetails = (toggleModal: () => void, crowdfund: CrowdFund) => {
 	});
 	const [balance, setBalance] = useState<number>();
 	const { user } = useContext(AuthContext);
+	const [errorMessage, setErrorMessage] = useState<string>()
+	const [infoInfoBarOpen, setInfoInfoBarOpen] = useState(false)
+	const [errorInfoBarOpen, setErrorInfoBarOpen] = useState(false)
 
 	useEffect(() => {
 		const getPaymentAccounts = async () => {
@@ -42,6 +45,12 @@ const useCrowdfundDetails = (toggleModal: () => void, crowdfund: CrowdFund) => {
 		setDonation((donation) => ({ ...donation, amount: parseInt(event.target.value) }));
 	};
 
+	const getSortedContributors = (contributors: CrowdFund["contributors"]) => {
+		const sorted = contributors.slice().sort((prev, next) => next.amount - prev.amount)
+		const sortedArray = [...sorted]
+		return sortedArray
+	}
+
 	const donate = async () => {
 		const selectedAccount = accounts.find((acc) => acc.name === donation.accountName);
 		if (
@@ -49,7 +58,21 @@ const useCrowdfundDetails = (toggleModal: () => void, crowdfund: CrowdFund) => {
 			donation.amount === 0 ||
 			donation.accountName === ""
 		) {
-			console.log("cannot donate");
+			if(donation.accountName === "") {
+				setErrorMessage("You have not selected an account")
+				return
+			}
+
+			if(donation.amount > selectedAccount?.balance!) {
+				setErrorMessage("You do not have enough to contribute")
+				return
+			}
+
+			if(donation.amount === 0 || donation.amount <= 0) {
+				setErrorMessage("You cannot donate RM0 or a negative amount")
+				return 
+			}
+
 		} else {
 			const contributionResult = await communityService.contribute(
 				user?.uid!,
@@ -58,16 +81,23 @@ const useCrowdfundDetails = (toggleModal: () => void, crowdfund: CrowdFund) => {
 			);
 			if (typeof contributionResult === "string") {
 				toggleModal();
+				setInfoInfoBarOpen(true)
 			} else {
-				console.log("an error occurred");
+				setErrorInfoBarOpen(true)
 			}
 		}
 	};
 
 	return {
 		donate,
+		getSortedContributors,
 		donation,
 		balance,
+		errorMessage,
+		infoInfoBarOpen,
+		errorInfoBarOpen,
+		setInfoInfoBarOpen,
+		setErrorInfoBarOpen,
 		handleAccountChange,
 		handleDonationChange,
 		accounts,

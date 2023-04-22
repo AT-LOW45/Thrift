@@ -6,6 +6,9 @@ const useAddMember = (modalOpen: boolean, toggleModal: () => void, groupId: stri
 	const [allAvailableProfiles, setAllAvailableProfiles] = useState<Set<Profile>>(new Set());
 	const [username, setUsername] = useState("");
 	const [selectedUsers, setSelectedUsers] = useState<Set<Profile>>(new Set());
+	const [infoInfoBarOpen, setInfoInfoBarOpen] = useState(false);
+	const [errorInfoBarOpen, setErrorInfoBarOpen] = useState(false);
+	const [memberCount, setMemberCount] = useState(0);
 
 	useEffect(() => {
 		const getProfiles = async () => {
@@ -65,9 +68,15 @@ const useAddMember = (modalOpen: boolean, toggleModal: () => void, groupId: stri
 	const enlistMembers = async () => {
 		try {
 			await groupService.enlistMembers(selectedUsers, groupId);
-            toggleModal()
+			toggleModal();
+			setMemberCount([...selectedUsers].length);
+			setInfoInfoBarOpen(true);
+			setSelectedUsers((users) => {
+				users.clear();
+				return users;
+			});
 		} catch (ex) {
-			console.log("error while enlisting");
+			setErrorInfoBarOpen(true);
 		}
 	};
 
@@ -75,6 +84,11 @@ const useAddMember = (modalOpen: boolean, toggleModal: () => void, groupId: stri
 		allAvailableProfiles,
 		username,
 		selectedUsers,
+		infoInfoBarOpen,
+		errorInfoBarOpen,
+		memberCount,
+		setInfoInfoBarOpen,
+		setErrorInfoBarOpen,
 		handleUsernameChange,
 		handleSoloUsernameChange,
 		addUserToList,

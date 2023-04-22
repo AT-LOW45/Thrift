@@ -16,13 +16,15 @@ import { Profile } from "../profile/profile.schema";
 import { Group, GroupSchema } from "./group.schema";
 import profileService from "../profile/profile.service";
 import { ZodError } from "zod";
+import notificationService from "../notification/notification.service";
 
 interface GroupServiceProvider extends Omit<ThriftServiceProvider<Group>, "readAll"> {
 	findMembers(groupId: string): Promise<Profile[]>;
 	findAvailableUserProfiles(): Promise<Profile[]>;
 	enlistMembers(members: Set<Profile>, groupId: string): Promise<void>;
 	validateGroupDetails(group: Group): true | ZodError<Group>["formErrors"]["fieldErrors"];
-	leaveGroup(): Promise<void>;
+	leaveGroup(): Promise<void>; // used by group members
+	kickMember(userProfile: Profile): Promise<void>; // used by group owners
 }
 
 const firestore = getFirestore(app);
@@ -75,6 +77,13 @@ const groupService: GroupServiceProvider = {
 				group: groupId,
 			});
 		});
+
+		const group = await this.find(groupId);
+
+		await notificationService.createMemberJoinTemplate(
+			group,
+			[...members].map((member) => member.username)
+		);
 	},
 	validateGroupDetails: function (group: Group) {
 		const GroupDetailsSchema = GroupSchema.pick({
@@ -93,6 +102,13 @@ const groupService: GroupServiceProvider = {
 	},
 	leaveGroup: async function () {
 		const foundProfile = await profileService.findProfile(auth.currentUser?.uid!);
+		const profileRef = doc(firestore, "UserProfile", foundProfile.id!);
+		await updateDoc(profileRef, {
+			group: "",
+		});
+	},
+	kickMember: async function (userProfile: Profile) {
+		const foundProfile = await profileService.findProfile(userProfile.userUid);
 		const profileRef = doc(firestore, "UserProfile", foundProfile.id!);
 		await updateDoc(profileRef, {
 			group: "",

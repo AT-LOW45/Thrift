@@ -4,7 +4,10 @@ import TrendingDownIcon from "@mui/icons-material/TrendingDown";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import TrendingFlatIcon from "@mui/icons-material/TrendingFlat";
 
-const data_grid_configuration = (openDialog: (recordId: string) => void) => {
+const data_grid_configuration = (
+	openDialog: (recordId: string) => void,
+	openGroupDialog: (recordId: string) => void
+) => {
 	const columnsIncome: GridColDef[] = [
 		{ field: "number", headerName: "No.", width: 90 },
 		{
@@ -55,7 +58,11 @@ const data_grid_configuration = (openDialog: (recordId: string) => void) => {
 					<Button
 						variant='outlined'
 						color='secondary'
-						onClick={() => openDialog(params.row.id as string)}
+						onClick={() => {
+							"madeBy" in params.row
+								? openGroupDialog(params.row.id as string)
+								: openDialog(params.row.id as string);
+						}}
 					>
 						View Details
 					</Button>
@@ -93,9 +100,7 @@ const data_grid_configuration = (openDialog: (recordId: string) => void) => {
 									: "rgb(242, 136, 136)"
 							}`,
 							color: `${
-								params.row.status === false
-									? "rgb(176, 142, 7)"
-									: "rgb(207, 0, 0)"
+								params.row.status === false ? "rgb(176, 142, 7)" : "rgb(207, 0, 0)"
 							}`,
 							px: 2,
 							py: 1,
@@ -105,7 +110,7 @@ const data_grid_configuration = (openDialog: (recordId: string) => void) => {
 						component='p'
 					>
 						RM {params.row.amount}
-						{params.row.status === true ? <TrendingDownIcon /> : < TrendingFlatIcon/>}
+						{params.row.status === true ? <TrendingDownIcon /> : <TrendingFlatIcon />}
 					</Typography>
 				);
 			},
@@ -126,7 +131,11 @@ const data_grid_configuration = (openDialog: (recordId: string) => void) => {
 					<Button
 						variant='outlined'
 						color='secondary'
-						onClick={() => openDialog(params.row.id as string)}
+						onClick={() => {
+							"status" in params.row
+								? openGroupDialog(params.row.id as string)
+								: openDialog(params.row.id as string);
+						}}
 					>
 						View Details
 					</Button>

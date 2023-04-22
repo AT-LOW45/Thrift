@@ -1,55 +1,32 @@
+
 import { SelectChangeEvent } from "@mui/material";
-import { useState, useEffect } from "react";
+import { useState, useEffect, ChangeEvent } from "react";
 import { useEditable } from "../../../context/EditableContext";
 import useInputGroup from "../../../hooks/useInputGroup";
-import { Category, BudgetPlan } from "../budget.schema";
+import { Category, BudgetPlan, CategorySchema } from "../budget.schema";
 import budgetService from "../budget.service";
 import { ChipOptions } from "../components/BudgetChip";
+import { z as zod, ZodError } from "zod";
 
-const useBudgetAddition = (availableBudgets: ChipOptions[], toggleModal: () => void) => {
+const useBudgetAddition = (
+	availableBudgets: ChipOptions[],
+	toggleModal: () => void,
+	open: boolean
+) => {
 	const { group, addGroup, handleGroupUpdate, hasSingleGroup, removeGroup, setGroup } =
 		useInputGroup<Category>(availableBudgets.length, {
 			name: "" as ChipOptions,
 			spendingLimit: 0,
 		});
 	const [isValid, setIsValid] = useState(false);
+	const [uniqueCategoryError, setUniqueCategoryError] = useState<string>();
 	const [spendableAmount, setSpendableAmount] = useState(0);
 	const [amountLeft, setAmountLeft] = useState(0);
 	const { formData } = useEditable<BudgetPlan>();
-
-	const validateUniqueBudgets = (categories: Category[]) => {
-		const budgets = categories.map((gr) => gr.name);
-		return budgets.every((name, index) => budgets.indexOf(name) === index);
-	};
-
-	const validateCategory = (categories: Category[]) => {
-		return categories.every((gr) => budgetService.validateCategory(gr));
-	};
-
-	const handleGroupChange = (
-		index: number,
-		event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement> | SelectChangeEvent
-	) => {
-		const targetValue =
-			event.target.name === "spendingLimit"
-				? parseInt(event.target.value)
-				: event.target.value;
-		handleGroupUpdate(index, event.target.name, targetValue, (groupResult) => {
-			setAmountLeft(() => {
-				const left =
-					spendableAmount -
-					groupResult
-						.map((cat) => cat.spendingLimit)
-						.reduce((prev, next) => prev + (isNaN(next) ? 0 : next), 0);
-
-				const result =
-					validateUniqueBudgets(groupResult) && validateCategory(groupResult) && left >= 0;
-				setIsValid(result);
-
-				return left;
-			});
-		});
-	};
+	const [successInfoBarOpen, setSuccessInfoBarOpen] = useState(false)
+	const [errorInfoBarOpen, setErrorInfoBarOpen] = useState(false)
+	const [errorMessages, setErrorMessages] =
+		useState<ZodError<Category[]>["formErrors"]["fieldErrors"]>();
 
 	useEffect(() => {
 		const result =
@@ -73,12 +50,65 @@ const useBudgetAddition = (availableBudgets: ChipOptions[], toggleModal: () => v
 		setAmountLeft(spendable);
 	}, [open]);
 
+	const validateUniqueBudgets = (categories: Category[]) => {
+		const budgets = categories.map((gr) => gr.name);
+		const result = budgets.every((name, index) => budgets.indexOf(name) === index);
+		if (result === true) {
+			setUniqueCategoryError(undefined);
+			return true;
+		} else {
+			setUniqueCategoryError("You have duplicate categories in different rows!");
+			return false;
+		}
+	};
+
+	const validateCategory = (categories: Category[]) => {
+		const CategoryArraySchema = zod.array(CategorySchema);
+		const result = CategoryArraySchema.safeParse(categories);
+
+		if (result.success === true) {
+			setErrorMessages(undefined);
+			return true;
+		} else {
+			setErrorMessages(result.error.formErrors.fieldErrors);
+			return false;
+		}
+	};
+
+	const handleGroupChange = (
+		index: number,
+		event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement> | SelectChangeEvent
+	) => {
+		const targetValue =
+			event.target.name === "spendingLimit"
+				? parseInt(event.target.value)
+				: event.target.value;
+		handleGroupUpdate(index, event.target.name, targetValue, (groupResult) => {
+			setAmountLeft(() => {
+				const left =
+					spendableAmount -
+					groupResult
+						.map((cat) => cat.spendingLimit)
+						.reduce((prev, next) => prev + (isNaN(next) ? 0 : next), 0);
+
+				const result =
+					validateUniqueBudgets(groupResult) &&
+					validateCategory(groupResult) &&
+					left >= 0;
+				setIsValid(result);
+
+				return left;
+			});
+		});
+	};
+
 	const addBudgets = async () => {
 		const result = await budgetService.addNewBudgets(formData.id!, group);
 		if (result) {
 			toggleModal();
+			setSuccessInfoBarOpen(true)
 		} else {
-			console.log("something went wrong");
+			setErrorInfoBarOpen(true)
 		}
 	};
 
@@ -90,8 +120,14 @@ const useBudgetAddition = (availableBudgets: ChipOptions[], toggleModal: () => v
 		removeGroup,
 		setGroup,
 		isValid,
+		uniqueCategoryError,
 		spendableAmount,
 		amountLeft,
+		errorMessages,
+		successInfoBarOpen,
+		errorInfoBarOpen,
+		setSuccessInfoBarOpen,
+		setErrorInfoBarOpen,
 		setAmountLeft,
 		setSpendableAmount,
 		handleGroupChange,

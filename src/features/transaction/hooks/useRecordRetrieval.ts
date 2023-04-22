@@ -15,6 +15,7 @@ import profileService from "../../profile/profile.service";
 import {
 	GroupIncome,
 	GroupTransaction,
+	GroupTransactionSchemaDefaults,
 	Income,
 	Transaction,
 	TransactionSchemaDefaults,
@@ -39,6 +40,16 @@ const useRecordRetrieval = () => {
 	const [hasGroup, setHasGroup] = useState(false);
 	const [isGroupView, setIsGroupView] = useState(false);
 	const [group, setGroup] = useState<Group>();
+	const [open, setOpen] = useState(false);
+	const [groupRecordDialogOpen, setGroupRecordDialogOpen] = useState(false);
+	const [selectedRecord, setSelectedRecord] = useState<Transaction | Income>(
+		TransactionSchemaDefaults.parse({})
+	);
+	const [selectedGroupRecord, setSelectedGroupRecord] = useState<GroupTransaction | GroupIncome>(
+		GroupTransactionSchemaDefaults.parse({})
+	);
+	const [creationDialogOpen, setCreationDialogOpen] = useState(false);
+	const [groupRecordCreationDialog, setGroupCreationDialog] = useState(false);
 	const { user } = useContext(AuthContext);
 
 	useEffect(() => {
@@ -79,7 +90,7 @@ const useRecordRetrieval = () => {
 	}, []);
 
 	const findMyRecords = async () => {
-		const personalAccounts = await paymentInfoService.getPersonalAccounts();
+		const personalAccounts = await paymentInfoService.getPersonalAccounts(true);
 
 		const recordRef = collection(firestore, "Transaction");
 		const recordQuery = query(
@@ -137,25 +148,24 @@ const useRecordRetrieval = () => {
 		return groupRecordStream;
 	};
 
-	const [open, setOpen] = useState(false);
-	const [selectedRecord, setSelectedRecord] = useState<Transaction | Income>(
-		TransactionSchemaDefaults.parse({})
-	);
-	const [creationDialogOpen, setCreationDialogOpen] = useState(false);
-	const [groupRecordCreationDialog, setGroupCreationDialog] = useState(false);
-	const [errorInfoBarOpen, setErrorInfoBarOpen] = useState(false);
-
 	const toggleDialog = () => setOpen((isOpen) => !isOpen);
-
 	const toggleCreationDialog = () => setCreationDialogOpen((isOpen) => !isOpen);
-
 	const toggleGroupRecordCreationDialog = () => setGroupCreationDialog((open) => !open);
+	const toggleGroupRecordDialog = () => setGroupRecordDialogOpen((open) => !open);
 
 	const openDialog = (recordId: string) => {
 		const record = records.find((rec) => rec.id === recordId);
 		if (record) {
 			setSelectedRecord(record);
 			toggleDialog();
+		}
+	};
+
+	const openGroupDialog = (groupRecordId: string) => {
+		const groupRecord = groupRecords.find((groupRec) => groupRec.id === groupRecordId);
+		if (groupRecord) {
+			setSelectedGroupRecord(groupRecord);
+			toggleGroupRecordDialog();
 		}
 	};
 
@@ -178,7 +188,7 @@ const useRecordRetrieval = () => {
 		!("category" in record);
 
 	const { columnsIncome, columnsTransactions, columnsGroupTransactions, columnsGroupIncome } =
-		data_grid_configuration(openDialog);
+		data_grid_configuration(openDialog, openGroupDialog);
 
 	const incomeRow = records.filter(isIncome).map((income, index) => ({
 		number: index + 1,
@@ -240,14 +250,17 @@ const useRecordRetrieval = () => {
 		columnsGroupIncome,
 		incomeRow,
 		transactionRow,
+		groupRecordDialogOpen,
 		groupIncomeRow,
 		groupTransactionRow,
 		hasGroup,
+		selectedGroupRecord,
 		setHasGroup,
+		toggleGroupRecordDialog,
 		isGroupView,
 		group,
 		setIsGroupView,
-		setErrorInfoBarOpen,
+
 		groupRecordCreationDialog,
 		toggleGroupRecordCreationDialog,
 	};

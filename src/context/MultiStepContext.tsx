@@ -1,3 +1,11 @@
+/**
+ * Programmer Name: Koh Choon Mun
+ * Program: MultiStepContext.tsx
+ * Description: A wrapper component enfolding all components that use the multi-step feature
+ * First written:
+ * Edited on: 
+ */
+
 import { SelectChangeEvent } from "@mui/material";
 import {
 	createContext,
@@ -17,6 +25,7 @@ type MultiStepProps<T extends object> = {
 };
 
 type Conditions = (boolean | boolean[])[];
+// TypeScript type alias that outlines all necessary variables and functions for the multi-step feature to work
 export type MultiStepContextType<T extends object> = {
 	updateContext: (
 		event:
@@ -34,8 +43,13 @@ export type MultiStepContextType<T extends object> = {
 	isValid: boolean;
 	formData: T;
 	setFormData: Dispatch<SetStateAction<T>>;
+	setCurrentStepIndex: Dispatch<SetStateAction<number>>
 };
 
+/**
+ * 1. creates the default multi step context
+ * 2. values for this context will be initialised using React's context provider 
+ */
 export const MultiStepContext = createContext({} as MultiStepContextType<any>);
 
 export const MultiStep = <T extends object>({
@@ -50,12 +64,25 @@ export const MultiStep = <T extends object>({
 	);
 };
 
+/**
+ * 1. convenience hook (useContext hook not explicitly called in the components that consume these properties)
+ * 2. uses React's useContext hook internally to return properties and functions 
+ * required for a multi-step component
+ * 3. logic defined in useMultiStepContext.ts
+ */
 export const useMultiStep = <T extends object>() => {
 	const { formData, updateContext, currentStepIndex } =
 		useContext<MultiStepContextType<T>>(MultiStepContext);
 	return { formData, updateContext, currentStepIndex };
 };
 
+/**
+ * 1. convenience hook (useContext hook not explicitly called in the components that consume these properties)
+ * 2. also uses the useContext hook
+ * 3. this hook is to provide variables and functions required for the parent component that
+ * houses all multi-step components
+ * 4. logic defined in useMultiStepContext.ts
+ */
 export const useMultiStepContainer = () => {
 	const {
 		back,
@@ -67,6 +94,7 @@ export const useMultiStepContainer = () => {
 		next,
 		formData,
 		setFormData,
+		setCurrentStepIndex
 	} = useContext(MultiStepContext);
 	return {
 		back,
@@ -78,5 +106,6 @@ export const useMultiStepContainer = () => {
 		formData,
 		next,
 		setFormData,
+		setCurrentStepIndex
 	};
 };

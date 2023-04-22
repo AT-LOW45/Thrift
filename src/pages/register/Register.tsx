@@ -1,5 +1,5 @@
 import { Box, Button, Stack } from "@mui/material";
-import { Fragment, useContext } from "react";
+import { Fragment, useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ZodError, z as zod } from "zod";
 import { AuthContext } from "../../context/AuthContext";
@@ -10,6 +10,7 @@ import {
 	PersonalAccountSchemaDefaults,
 } from "../../features/payment_info/paymentInfo.schema";
 import { MarketAuxIndustriesSchema } from "../../service/marketaux";
+import { InfoBar } from "../../components";
 
 export const RegisterSchema = zod.object({
 	email: zod.string().email({ message: "Incorrect email format" }),
@@ -63,12 +64,27 @@ const Register = () => {
 		useMultiStepContainer();
 	const navigate = useNavigate();
 	const { signUpWithEmailAndPassword } = useContext(AuthContext);
+	const [errorInfoBarOpen, setErrorInfoBarOpen] = useState(false);
+	const [signUpErrorMessage, setSignUpErrorMessage] = useState("");
 
 	const signUp = () => {
-		console.log(formData);
 		signUpWithEmailAndPassword(formData)
-			.then((res) => (res === true ? navigate("/overview") : console.log(res)))
-			.catch(() => console.log("something went wrong"));
+			.then((res) => {
+				if (typeof res === "boolean" && res === true) {
+					navigate("/overview");
+				} else {
+					setSignUpErrorMessage(
+						typeof res === "string" ? res : "Unable to sign up. Please try again later"
+					);
+					setErrorInfoBarOpen(true);
+				}
+			})
+			.catch((err) => {
+				if (err instanceof Error) {
+					setSignUpErrorMessage(err.message);
+					setErrorInfoBarOpen(true);
+				}
+			});
 	};
 
 	return (
@@ -94,6 +110,12 @@ const Register = () => {
 					)}
 				</Fragment>
 			</Stack>
+			<InfoBar
+				infoBarOpen={errorInfoBarOpen}
+				setInfoBarOpen={setErrorInfoBarOpen}
+				message={signUpErrorMessage}
+				type="error"
+			/>
 		</Stack>
 	);
 };

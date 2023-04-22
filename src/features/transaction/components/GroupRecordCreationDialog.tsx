@@ -23,6 +23,8 @@ import FormDialog, { FormDialogProps } from "../../../components/form/FormDialog
 import BudgetChip, { budgetTypes } from "../../budget/components/BudgetChip";
 import { Group } from "../../group_planning/group.schema";
 import useCreateGroupRecord from "../hooks/useCreateGroupRecord";
+import { GroupTransactionSchemaDefaults } from "../transaction.schema";
+import { InfoBar } from "../../../components";
 
 type GroupRecordCreationDialogProps = Pick<FormDialogProps, "open" | "toggleModal"> & {
 	group: Group;
@@ -49,12 +51,27 @@ const GroupRecordCreationDialog = ({
 		testAuto,
 		testAutoFree,
 		toggleConfirmationDialog,
+		setGroupTransaction,
+		errorInfoBarOpen, 
+		newRecordId,
+		setErrorInfoBarOpen,
+		setSuccessInfoBarOpen,
+		successInfoBarOpen,
 	} = useCreateGroupRecord(group, toggleModal);
 
 	return (
 		<Fragment>
 			<FormDialog
 				actions={[
+					<Button
+						key={2}
+						onClick={() => {
+							toggleModal();
+							setGroupTransaction(GroupTransactionSchemaDefaults.parse({}));
+						}}
+					>
+						Cancel
+					</Button>,
 					<Button key={1} disabled={!isValid} onClick={proceedWithTransac}>
 						Finish
 					</Button>,
@@ -177,6 +194,18 @@ const GroupRecordCreationDialog = ({
 					</DialogActions>
 				</Dialog>
 			</Portal>
+			<InfoBar
+				infoBarOpen={successInfoBarOpen}
+				setInfoBarOpen={setSuccessInfoBarOpen}
+				type='success'
+				message={`Created group transaction with ID ${newRecordId}`}
+			/>
+			<InfoBar
+				infoBarOpen={errorInfoBarOpen}
+				setInfoBarOpen={setErrorInfoBarOpen}
+				type='error'
+				message='An error occurred while attempting to create the group transaction. Please try again later'
+			/>
 		</Fragment>
 	);
 };

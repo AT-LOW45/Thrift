@@ -21,6 +21,7 @@ import transactionService from "../transaction/transaction.service";
 import { CrowdFund, CrowdfundSchema, Post, PostSchema } from "./community.schema";
 import { Transaction } from "../transaction/transaction.schema";
 import { ZodError } from "zod";
+import notificationService from "../notification/notification.service";
 
 type OmitThriftServiceProvider = Omit<
 	ThriftServiceProvider<Post | CrowdFund>,
@@ -133,7 +134,7 @@ const communityService: CommunityServiceProvider = {
 			where("isActive", "==", true)
 		);
 		const myCrowdfund = await getDocs(fundQuery);
-		
+
 		return myCrowdfund.docs.length === 0
 			? null
 			: ({ ...myCrowdfund.docs[0].data(), id: myCrowdfund.docs[0].id } as CrowdFund);
@@ -204,6 +205,20 @@ const communityService: CommunityServiceProvider = {
 	},
 	closeCrowdfund: async function (crowdfundId: string) {
 		const crowdfundRef = doc(firestore, "Crowdfund", crowdfundId);
+		const crowdfundDoc = await getDoc(crowdfundRef);
+		const crowdfund = { id: crowdfundDoc.id, ...crowdfundDoc.data() } as CrowdFund;
+
+		const contributorProfiles = await Promise.all(
+			crowdfund.contributors
+				.map((contributor) => contributor.user)
+				.map(async (username) => await profileService.findProfileByUsername(username))
+		);
+
+		const notificationResult = notificationService.createCrowdfundEndTemplate(
+			crowdfund,
+			contributorProfiles.map((contributor) => contributor.userUid)
+		);
+
 		await updateDoc(crowdfundRef, {
 			isActive: false,
 		});

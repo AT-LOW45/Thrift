@@ -1,14 +1,16 @@
-import { TableCell, tableCellClasses, TableRow, styled } from "@mui/material";
-import { useState, useEffect } from "react";
+import { TableCell, TableRow, styled, tableCellClasses } from "@mui/material";
+import { collection, getFirestore, onSnapshot, query, where } from "firebase/firestore";
+import { useEffect, useState } from "react";
+import app from "../../../firebaseConfig";
 import { FirestoreTimestampObject } from "../../../service/thrift";
 import { GroupAccount, GroupAccountSchemaDefaults } from "../../payment_info/paymentInfo.schema";
-import paymentInfoService from "../../payment_info/paymentInfo.service";
 import { Profile, ProfileSchemaDefaults } from "../../profile/profile.schema";
 import profileService from "../../profile/profile.service";
 import { GroupIncome, GroupTransaction } from "../../transaction/transaction.schema";
 import transactionService from "../../transaction/transaction.service";
 import { Group } from "../group.schema";
-import groupService from "../group.service";
+
+const firestore = getFirestore(app);
 
 const useGroupDetailRetrieval = (group: Group) => {
 	const [owner, setOwner] = useState<Profile>(ProfileSchemaDefaults.parse({}));
@@ -28,11 +30,24 @@ const useGroupDetailRetrieval = (group: Group) => {
 			const foundOwner = await profileService.findProfile(group.owner);
 			setOwner(foundOwner);
 
-			const foundMembers = await groupService.findMembers(group.id!);
-			setMembers(foundMembers);
+			const memberRef = collection(firestore, "UserProfile");
+			const memberQuery = query(memberRef, where("group", "==", group.id!));
+			const memberStream = onSnapshot(memberQuery, (snapshot) => {
+				const members = snapshot.docs.map(
+					(member) => ({ id: member.id, ...member.data() } as Profile)
+				);
+				setMembers(members);
+			});
 
-			const foundGroupAccount = await paymentInfoService.getGroupAccount(group.id!);
-			setGroupAccount(foundGroupAccount);
+			const groupAccountRef = collection(firestore, "PaymentInfo");
+			const groupAccountQuery = query(groupAccountRef, where("groupId", "==", group.id!));
+			const groupAccountStream = onSnapshot(groupAccountQuery, (snapshot) => {
+				const groupAccount = {
+					id: snapshot.docs[0].id,
+					...snapshot.docs[0].data(),
+				} as GroupAccount;
+				setGroupAccount(groupAccount);
+			});
 
 			const foundPendingTransactions = await transactionService.getPendingGroupTransactions(
 				group.id!
@@ -49,7 +64,7 @@ const useGroupDetailRetrieval = (group: Group) => {
 			});
 
 			const foundGroupTransactions = await transactionService.getGroupTransactions(group.id!);
-			const transactionsWithDateAndProfile = Promise.all(
+			const transactionsWithDateAndProfile = await Promise.all(
 				foundGroupTransactions.map(async (record) => {
 					const transactionProfile = await profileService.findProfile(record.madeBy);
 
@@ -62,10 +77,18 @@ const useGroupDetailRetrieval = (group: Group) => {
 					} as GroupTransaction | GroupIncome;
 				})
 			);
+			setGroupTransactions(transactionsWithDateAndProfile);
 
-			return transactionsWithDateAndProfile;
+			return { groupAccountStream, memberStream };
 		};
-		configureBudgetDetails().then((records) => setGroupTransactions(records));
+		const unsubStreams = configureBudgetDetails();
+
+		return () => {
+			unsubStreams.then((stream) => {
+				stream.groupAccountStream();
+				stream.memberStream();
+			});
+		};
 	}, []);
 
 	const StyledTableCell = styled(TableCell)(({ theme }) => ({

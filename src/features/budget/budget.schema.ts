@@ -15,11 +15,9 @@ export const CategorySchema = zod.object({
 
 export const PlannedPaymentSchema = zod.object({
 	id: zod.string().optional(),
-	name: zod
-		.string()
-		.min(5, {
-			message: "The name for this planned payment must be at least 5 characters long",
-		}),
+	name: zod.string().min(5, {
+		message: "The name for this planned payment must be at least 5 characters long",
+	}),
 	amount: zod
 		.number({ invalid_type_error: "Please provide an amount" })
 		.nonnegative({ message: "Your planned payment amount cannot be negative" })

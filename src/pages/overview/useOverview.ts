@@ -1,22 +1,18 @@
-import {
-	getFirestore,
-	collection,
-	query,
-	where,
-	orderBy,
-	getDocs,
-	limit,
-} from "firebase/firestore";
-import { useState, useEffect } from "react";
+import { Typography, styled } from "@mui/material";
+import { collection, getDocs, getFirestore, orderBy, query, where } from "firebase/firestore";
+import { useEffect, useState } from "react";
 import { BudgetPlan, budgetService } from "../../features/budget";
+import { Post } from "../../features/community/community.schema";
+import communityService from "../../features/community/community.service";
 import { PersonalAccount } from "../../features/payment_info/paymentInfo.schema";
 import paymentInfoService from "../../features/payment_info/paymentInfo.service";
 import useMonthlyBudgetSummary from "../../features/transaction/hooks/useMonthlyBudgetSummary";
 import useRecordChartSummary from "../../features/transaction/hooks/useRecordChartSummary";
 import { Income, Transaction } from "../../features/transaction/transaction.schema";
 import transactionService from "../../features/transaction/transaction.service";
-import { Post } from "../../features/community/community.schema";
-import communityService from "../../features/community/community.service";
+import app from "../../firebaseConfig";
+
+const firestore = getFirestore(app);
 
 const useOverview = () => {
 	const { recentTransactionsData, recentTransactionsOptions, areRecordsLoading } =
@@ -36,7 +32,15 @@ const useOverview = () => {
 	}>();
 	const [recentPosts, setRecentPosts] = useState<Post[]>([]);
 
-	const firestore = getFirestore();
+	useEffect(() => {
+		const configureData = async () => {
+			await getRecentRecord();
+			await getCurrentMonthIncome();
+			await getMostRecentBudget();
+			await getRecentPosts();
+		};
+		configureData();
+	}, []);
 
 	const getRecentRecord = async () => {
 		const recentRecord = await transactionService.findMostRecentRecord();
@@ -51,7 +55,7 @@ const useOverview = () => {
 	};
 
 	const getCurrentMonthIncome = async () => {
-		const personalAccounts = await paymentInfoService.getPersonalAccounts();
+		const personalAccounts = await paymentInfoService.getPersonalAccounts(true);
 
 		const incomeRef = collection(firestore, "Transaction");
 		const firstDayOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
@@ -96,7 +100,7 @@ const useOverview = () => {
 
 	const getMostRecentBudget = async () => {
 		const transactionRef = collection(firestore, "Transaction");
-		const personalAccounts = await paymentInfoService.getPersonalAccounts();
+		const personalAccounts = await paymentInfoService.getPersonalAccounts(true);
 
 		const transactionQuery = query(
 			transactionRef,
@@ -136,15 +140,27 @@ const useOverview = () => {
 		setRecentPosts(posts);
 	};
 
-	useEffect(() => {
-		const configureData = async () => {
-			await getRecentRecord();
-			await getCurrentMonthIncome();
-			await getMostRecentBudget();
-			await getRecentPosts();
-		};
-		configureData();
-	}, []);
+	const styles = {
+		paddingTop: 7,
+		paddingBottom: 7,
+		paddingLeft: 15,
+		paddingRight: 15,
+		display: "flex",
+		alignItems: "center",
+		borderRadius: "7px",
+	};
+
+	const TrendUpBadge = styled(Typography)(() => ({
+		...styles,
+		backgroundColor: "rgb(180, 255, 176)",
+		color: "green",
+	}));
+
+	const TrendDownBadge = styled(Typography)(() => ({
+		...styles,
+		backgroundColor: "rgb(242, 136, 136)",
+		color: "rgb(207, 0, 0)",
+	}));
 
 	return {
 		recentTransactionsData,
@@ -156,6 +172,8 @@ const useOverview = () => {
 		currentMonthIncome,
 		recentPosts,
 		mostRecentBudget,
+		TrendUpBadge,
+		TrendDownBadge,
 	};
 };
 

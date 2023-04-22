@@ -12,6 +12,7 @@ const BudgetOverviewDetails = () => {
 		placeholderFormData,
 		handleLimit,
 		errorMessages,
+		amountUsed,
 		handleNote,
 	} = useBudgetOverviewEdit();
 
@@ -60,7 +61,7 @@ const BudgetOverviewDetails = () => {
 			<EditableField compact>
 				<EditableField.View>
 					<Typography variant='regularLight' component='p'>
-						Usage is at 25% You will be alerted once it reaches &nbsp;
+						Usage is at {amountUsed}% You will be alerted once it reaches &nbsp;
 						{formData.spendingThreshold}%
 					</Typography>
 				</EditableField.View>

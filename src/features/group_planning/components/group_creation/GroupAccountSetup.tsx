@@ -39,6 +39,7 @@ const GroupAccountSetup = ({
 	const { formData, updateContext } = useMultiStep<Group>();
 	const [errorMessages, setErrorMessages] =
 		useState<ZodError<GroupAccount>["formErrors"]["fieldErrors"]>();
+	const [insufficientAmountError, setInsufficientAmountError] = useState<string>();
 
 	const handleAccountChange = (event: SelectChangeEvent) => {
 		const foundAccount = personalAccounts.find((acc) => acc.name === event.target.value);
@@ -57,11 +58,31 @@ const GroupAccountSetup = ({
 		}
 	};
 
+	const validateAmount = (groupAccount: GroupAccount) => {
+		if (selectedAccount) {
+			if (isNaN(groupAccount.balance)) {
+				return false;
+			} else {
+				if (groupAccount.balance <= selectedAccount.balance) {
+					setInsufficientAmountError(undefined);
+					return true;
+				} else {
+					setInsufficientAmountError(
+						"Your personal account balance is insufficient for this initial funding"
+					);
+					return false;
+				}
+			}
+		} else {
+			return false;
+		}
+	};
+
 	// also validate when selected account changes
 	useEffect(() => {
 		updateContext({ key: "groupAccount", value: formData.groupAccount }, (group) => [
 			validateState(group.groupAccount),
-			selectedAccount ? group.groupAccount.balance <= selectedAccount.balance : false,
+			validateAmount(group.groupAccount),
 		]);
 	}, [selectedAccount]);
 
@@ -76,7 +97,7 @@ const GroupAccountSetup = ({
 				: { ...formData.groupAccount, name: event.target.value };
 		updateContext({ key: "groupAccount", value: updated }, (group) => [
 			validateState(group.groupAccount),
-			selectedAccount ? group.groupAccount.balance <= selectedAccount.balance : false,
+			validateAmount(group.groupAccount),
 		]);
 	};
 
@@ -134,6 +155,9 @@ const GroupAccountSetup = ({
 				onChange={handleGroupAccountChange}
 				variant='standard'
 			/>
+			{insufficientAmountError && (
+				<Typography variant='regularLight'>{insufficientAmountError}</Typography>
+			)}
 		</Fragment>
 	);
 };

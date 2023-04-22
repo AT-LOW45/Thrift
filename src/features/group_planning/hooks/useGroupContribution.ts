@@ -8,7 +8,7 @@ import profileService from "../../profile/profile.service";
 import {
 	GroupIncome,
 	GroupIncomeSchemaDefaults,
-	labels
+	labels,
 } from "../../transaction/transaction.schema";
 import transactionService from "../../transaction/transaction.service";
 import { Group } from "../group.schema";
@@ -23,6 +23,9 @@ const useGroupContribution = (group: Group, toggleModal: () => void) => {
 	const { user } = useContext(AuthContext);
 	const [personalAccounts, setPersonalAccounts] = useState<PersonalAccount[]>([]);
 	const [selectedAccount, setSelectedAccount] = useState<PersonalAccount>();
+	const [successInfoBarOpen, setSuccessInfoBarOpen] = useState(false);
+	const [errorInfoBarOpen, setErrorInfoBarOpen] = useState(false);
+	const [contributionAmount, setContributionAmount] = useState(0)
 	const [errorMessages, setErrorMessages] =
 		useState<ZodError<GroupIncome>["formErrors"]["fieldErrors"]>();
 
@@ -127,11 +130,14 @@ const useGroupContribution = (group: Group, toggleModal: () => void) => {
 
 				await paymentInfoService.addGroupMaintainer(foundGroupAcc, foundProfile);
 				toggleModal();
+				setContributionAmount(groupIncome.amount)
+				setSuccessInfoBarOpen(true);
+				setGroupIncome(GroupIncomeSchemaDefaults.parse({}));
 			} else {
-				console.log("unable to contribute");
+				setErrorInfoBarOpen(true);
 			}
 		} else {
-			console.log("unable to deduct from your account");
+			setErrorInfoBarOpen(true);
 		}
 	};
 
@@ -143,6 +149,11 @@ const useGroupContribution = (group: Group, toggleModal: () => void) => {
 		personalAccounts,
 		selectedAccount,
 		errorMessages,
+		successInfoBarOpen,
+		errorInfoBarOpen,
+		contributionAmount,
+		setSuccessInfoBarOpen,
+		setErrorInfoBarOpen,
 		testAuto,
 		testAutoFree,
 		addLabel,
@@ -150,6 +161,7 @@ const useGroupContribution = (group: Group, toggleModal: () => void) => {
 		handleChange,
 		contribute,
 		handleAccountChange,
+		setGroupIncome,
 	};
 };
 

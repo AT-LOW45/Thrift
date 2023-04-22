@@ -1,6 +1,11 @@
 import { createTheme } from "@mui/material";
 import "./global_styles.css";
 
+/**
+ * 1. the theme object is supplied in the global "ThemeProvider" wrapper component imported from MUI
+ * 2. it is primarily used in MUI functions such as "styled" and props such as "sx"
+ * 3. global styles should be defined here and used in different parts of the application
+ */
 const theme = createTheme({
 	typography: {
 		fontFamily: "Nunito Sans",

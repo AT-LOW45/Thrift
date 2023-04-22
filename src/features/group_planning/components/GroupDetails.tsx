@@ -1,3 +1,4 @@
+import DoorBackIcon from "@mui/icons-material/DoorBack";
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 import {
 	Alert,
@@ -19,18 +20,19 @@ import {
 	TableHead,
 	TableRow,
 	Typography,
+	styled,
 } from "@mui/material";
 import Grid2 from "@mui/material/Unstable_Grid2";
-import { useState } from "react";
+import { Fragment, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Tray } from "../../../components";
 import { Group } from "../group.schema";
+import groupService from "../group.service";
 import useGroupDetailRetrieval from "../hooks/useGroupDetailRetrieval";
 import AddMemberDialog from "./AddMemberDialog";
 import ContributionDialog from "./ContributionDialog";
 import PendingTransactionDialog from "./PendingTransactionDialog";
-import DoorBackIcon from "@mui/icons-material/DoorBack";
-import groupService from "../group.service";
-import { useNavigate } from "react-router-dom";
+import RemoveMemberDialog from "./RemoveMemberDialog";
 
 type GroupDetailsProps = { isOwner: boolean; group: Group };
 
@@ -48,20 +50,36 @@ const GroupDetails = ({ isOwner, group }: GroupDetailsProps) => {
 	const [addMemberDialogOpen, setAddMemberDialogOpen] = useState(false);
 	const [contributionDialogOpen, setContributionDialogOpen] = useState(false);
 	const [exitGroupDialogOpen, setExitGroupDialogOpen] = useState(false);
+	const [removeMemberDialogOpen, setRemoveMemberDialogOpen] = useState(false);
+
 	const navigate = useNavigate();
 
 	const togglePendingTransactionsDialog = () => setPendingTransactionsDialogOpen((open) => !open);
-
 	const toggleAddMemberDialog = () => setAddMemberDialogOpen((open) => !open);
-
 	const toggleContributionDialog = () => setContributionDialogOpen((open) => !open);
-
 	const toggleExitGroupDialog = () => setExitGroupDialogOpen((open) => !open);
+	const getStatusText = (status: boolean) => (status ? "approved" : "pending");
+	const toggleRemoveMemberDialog = () => setRemoveMemberDialogOpen((open) => !open);
 
 	const exitGroup = async () => {
 		await groupService.leaveGroup();
 		navigate("/group-planning");
 	};
+
+	const AvatarContainer = styled(Stack)(() => ({
+		overflow: "auto",
+		flexWrap: "wrap",
+		marginTop: "10px",
+		padding: "10px 10px",
+		"&::-webkit-scrollbar": {
+			width: "0.3rem",
+		},
+		"&::-webkit-scrollbar-thumb": {
+			background: "#1A46C4",
+		},
+		backgroundColor: "rgba(0, 0, 0, 0.05)",
+		borderRadius: "10px",
+	}));
 
 	return (
 		<Stack spacing={4} mt={3} mx={5}>
@@ -136,25 +154,7 @@ const GroupDetails = ({ isOwner, group }: GroupDetailsProps) => {
 						<Typography textAlign='start' pt={2}>
 							Maintained by
 						</Typography>
-						<Stack
-							maxHeight='200px'
-							overflow='auto'
-							direction='row'
-							flexWrap='wrap'
-							mt={1}
-							sx={{
-								"&::-webkit-scrollbar": {
-									width: "0.3rem",
-								},
-								"&::-webkit-scrollbar-thumb": {
-									background: "#1A46C4",
-								},
-								backgroundColor: "rgba(0, 0, 0, 0.05)",
-								py: 1,
-								px: 2,
-								borderRadius: "10px",
-							}}
-						>
+						<AvatarContainer maxHeight='200px' direction='row'>
 							{[...groupAccount.maintainers].length === 0 ? (
 								<Typography
 									component='p'
@@ -182,7 +182,7 @@ const GroupDetails = ({ isOwner, group }: GroupDetailsProps) => {
 									</Stack>
 								))
 							)}
-						</Stack>
+						</AvatarContainer>
 					</Box>
 				</Tray>
 			</Grid2>
@@ -191,30 +191,17 @@ const GroupDetails = ({ isOwner, group }: GroupDetailsProps) => {
 				<Stack spacing={3} direction='row' mt={3}>
 					<Typography variant='regularSubHeading'>Members</Typography>
 					{isOwner && (
-						<Button variant='contained' onClick={toggleAddMemberDialog}>
-							Add Member
-						</Button>
+						<Fragment>
+							<Button variant='contained' onClick={toggleAddMemberDialog}>
+								Add Member
+							</Button>
+							<Button variant='outlined' onClick={toggleRemoveMemberDialog}>
+								Remove member
+							</Button>
+						</Fragment>
 					)}
 				</Stack>
-				<Stack
-					maxHeight='400px'
-					overflow='auto'
-					direction='row'
-					flexWrap='wrap'
-					mt={1}
-					sx={{
-						"&::-webkit-scrollbar": {
-							width: "0.3rem",
-						},
-						"&::-webkit-scrollbar-thumb": {
-							background: "#1A46C4",
-						},
-						backgroundColor: "rgba(0, 0, 0, 0.05)",
-						py: 1,
-						px: 2,
-						borderRadius: "10px",
-					}}
-				>
+				<AvatarContainer maxHeight='400px' direction='row'>
 					{members.length === 0 ? (
 						<Typography
 							component='p'
@@ -242,7 +229,7 @@ const GroupDetails = ({ isOwner, group }: GroupDetailsProps) => {
 							</Stack>
 						))
 					)}
-				</Stack>
+				</AvatarContainer>
 			</Stack>
 
 			<Stack spacing={2} pb={10}>
@@ -289,7 +276,12 @@ const GroupDetails = ({ isOwner, group }: GroupDetailsProps) => {
 										<StyledTableCell>
 											{(transac.transactionDate as Date).toLocaleDateString()}
 										</StyledTableCell>
-										<StyledTableCell>lll</StyledTableCell>
+
+										<StyledTableCell>
+											{"status" in transac
+												? getStatusText(transac.status)
+												: "approved"}
+										</StyledTableCell>
 									</StyledTableRow>
 								))
 							)}
@@ -318,17 +310,12 @@ const GroupDetails = ({ isOwner, group }: GroupDetailsProps) => {
 				/>
 			)}
 
-			<AddMemberDialog
-				open={addMemberDialogOpen}
-				toggleModal={toggleAddMemberDialog}
-				groupId={group.id!}
-			/>
 			<ContributionDialog
 				open={contributionDialogOpen}
 				toggleModal={toggleContributionDialog}
 				group={group}
 			/>
-			{!isOwner && (
+			{!isOwner ? (
 				<Portal>
 					<Dialog
 						open={exitGroupDialogOpen}
@@ -350,6 +337,19 @@ const GroupDetails = ({ isOwner, group }: GroupDetailsProps) => {
 						</DialogActions>
 					</Dialog>
 				</Portal>
+			) : (
+				<Fragment>
+					<AddMemberDialog
+						open={addMemberDialogOpen}
+						toggleModal={toggleAddMemberDialog}
+						groupId={group.id!}
+					/>
+					<RemoveMemberDialog
+						open={removeMemberDialogOpen}
+						toggleModal={toggleRemoveMemberDialog}
+						groupId={group.id!}
+					/>
+				</Fragment>
 			)}
 		</Stack>
 	);

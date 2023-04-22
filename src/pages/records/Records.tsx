@@ -4,6 +4,7 @@ import RecordDetailsDialog from "../../features/transaction/components/RecordDet
 import useRecordRetrieval from "../../features/transaction/hooks/useRecordRetrieval";
 import ChangeCircleIcon from "@mui/icons-material/ChangeCircle";
 import GroupRecordCreationDialog from "../../features/transaction/components/GroupRecordCreationDialog";
+import GroupRecordDetailsDialog from "../../features/transaction/components/GroupRecordDetailsDialog";
 
 const Records = () => {
 	const {
@@ -12,7 +13,6 @@ const Records = () => {
 		columnsTransactions,
 		creationDialogOpen,
 		open,
-		setErrorInfoBarOpen,
 		selectedRecord,
 		toggleCreationDialog,
 		toggleDialog,
@@ -24,10 +24,13 @@ const Records = () => {
 		groupIncomeRow,
 		groupTransactionRow,
 		isGroupView,
+		selectedGroupRecord,
+		groupRecordDialogOpen,
 		setIsGroupView,
 		groupRecordCreationDialog,
+		toggleGroupRecordDialog,
 		toggleGroupRecordCreationDialog,
-		group
+		group,
 	} = useRecordRetrieval();
 
 	return (
@@ -53,7 +56,12 @@ const Records = () => {
 				)}
 			</Stack>
 
-			<Stack direction='column' spacing={3} sx={{ height: "450px", width: "100%", mt: 5 }}>
+			<Stack
+				direction='column'
+				spacing={3}
+				sx={{ height: "450px", width: "100%", mt: 5 }}
+				px={3}
+			>
 				<Typography variant='regularSubHeading'>Income</Typography>
 
 				<CustomDataGrid
@@ -72,6 +80,7 @@ const Records = () => {
 				direction='column'
 				spacing={3}
 				sx={{ height: "450px", width: "100%", mt: 6, mb: 5 }}
+				px={3}
 			>
 				<Typography variant='regularSubHeading'>Transactions</Typography>
 
@@ -91,7 +100,6 @@ const Records = () => {
 				<RecordCreationDialog
 					open={creationDialogOpen}
 					toggleModal={toggleCreationDialog}
-					openInfoBar={setErrorInfoBarOpen}
 				/>
 			) : (
 				<GroupRecordCreationDialog
@@ -102,11 +110,17 @@ const Records = () => {
 			)}
 
 			<RecordDetailsDialog open={open} toggleModal={toggleDialog} record={selectedRecord} />
+			<GroupRecordDetailsDialog
+				open={groupRecordDialogOpen}
+				toggleModal={toggleGroupRecordDialog}
+				groupRecord={selectedGroupRecord}
+			/>
+
 			{hasGroup && (
 				<Tooltip
 					title={`switch to ${isGroupView ? "personal" : "group"} view`}
-					sx={{ position: "fixed", bottom: 50, right: 70 }}
-					placement='top'
+					sx={{ position: "fixed", zIndex: 50, bottom: 30, left: 210 }}
+					placement='left'
 				>
 					<Fab
 						color='primary'

@@ -30,9 +30,15 @@ import app from "../../firebaseConfig";
 import paymentInfoService from "../payment_info/paymentInfo.service";
 import { getAuth } from "firebase/auth";
 import { ZodError } from "zod";
+import { budgetService } from "../budget";
+import notificationService from "../notification/notification.service";
+import groupService from "../group_planning/group.service";
 
 interface TransactionServiceProvider
-	extends Omit<ThriftServiceProvider<Transaction | Income>, "addDoc"> {
+	extends Omit<
+		ThriftServiceProvider<Transaction | Income>,
+		"addDoc" | "readAll" | "find" | "deleteDoc"
+	> {
 	validateRecordDetails(
 		record: Transaction | Income
 	): true | ZodError<Transaction | Income>["formErrors"]["fieldErrors"];
@@ -59,12 +65,6 @@ const firestore = getFirestore(app);
 const auth = getAuth(app);
 
 const transactionService: TransactionServiceProvider = {
-	readAll: async function (): Promise<Transaction[]> {
-		throw new Error("not implemented");
-	},
-	find: async function (id: string): Promise<Transaction> {
-		throw new Error("not implemented");
-	},
 	addRecord: async function (record: Transaction | Income) {
 		const result =
 			"category" in record
@@ -96,12 +96,29 @@ const transactionService: TransactionServiceProvider = {
 				result.data.accountName!
 			);
 
+			if (
+				"category" in result.data &&
+				result.data.category !== "crowdfund" &&
+				transactionMade
+			) {
+				const budgetPlanId = result.data.budgetPlanId;
+				const { amountLeftPercentage } = await budgetService.getRemainingOverallAmount(
+					budgetPlanId
+				);
+				const budgetPlan = await budgetService.find(budgetPlanId);
+				if (amountLeftPercentage >= budgetPlan.spendingThreshold) {
+					await notificationService.createSpendingAlertTemplate(
+						budgetPlan,
+						amountLeftPercentage
+					);
+				}
+			}
+
 			return transactionMade ? newRecordRef.id : false;
 		} else {
 			return false;
 		}
 	},
-	deleteDoc: async function (id: string): Promise<void> {},
 	validateRecordDetails: function (record: Transaction | Income) {
 		const result =
 			"category" in record
@@ -191,6 +208,11 @@ const transactionService: TransactionServiceProvider = {
 				labels: Array.from(labels),
 				...rest,
 			});
+
+			const group = await groupService.find(record.groupId);
+
+			const contributionNotificationResult =
+				await notificationService.createGroupContributionTemplate(result.data, group);
 
 			const transactionMade = await paymentInfoService.updateGroupAmount(
 				result.data.amount,

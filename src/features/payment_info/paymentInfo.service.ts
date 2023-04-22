@@ -1,5 +1,6 @@
 import { getAuth } from "firebase/auth";
 import {
+	QueryConstraint,
 	addDoc,
 	arrayUnion,
 	collection,
@@ -25,7 +26,7 @@ import {
 import { ZodError } from "zod";
 
 interface PaymentInfoServiceProvider extends ThriftServiceProvider<PaymentInfo> {
-	getPersonalAccounts(): Promise<PersonalAccount[]>;
+	getPersonalAccounts(includeInactiveAccounts?: boolean): Promise<PersonalAccount[]>;
 	updateAmount(
 		amount: number,
 		transactionType: "credit" | "debit",
@@ -38,11 +39,15 @@ interface PaymentInfoServiceProvider extends ThriftServiceProvider<PaymentInfo> 
 		transactionType: "credit" | "debit",
 		groupId: string
 	): Promise<boolean>;
+	validatePersonalAccount(
+		personalAccount: PersonalAccount
+	): true | ZodError<PersonalAccount>["formErrors"]["fieldErrors"];
 	validateGroupAccount(
 		groupAccount: GroupAccount
 	): true | ZodError<GroupAccount>["formErrors"]["fieldErrors"];
 	createGroupAccount(groupAccount: GroupAccount): Promise<string | boolean>;
 	addGroupMaintainer(groupAccount: GroupAccount, user: Profile): Promise<void>;
+	deactivatePaymentAccount(accountId: string): Promise<void>;
 }
 
 const firestore = getFirestore(app);
@@ -79,13 +84,16 @@ const paymentInfoService: PaymentInfoServiceProvider = {
 	deleteDoc: function (id: string): Promise<void> {
 		throw new Error("Function not implemented.");
 	},
-	getPersonalAccounts: async function () {
+	getPersonalAccounts: async function (includeInactiveAccounts?: boolean) {
 		const personalAccountRef = collection(firestore, "PaymentInfo");
-		const accountQuery = query(
-			personalAccountRef,
-			orderBy("type"),
-			where("userUid", "==", auth.currentUser?.uid)
-		);
+		const constraints: QueryConstraint[] = includeInactiveAccounts
+			? [orderBy("type"), where("userUid", "==", auth.currentUser?.uid)]
+			: [
+					orderBy("type"),
+					where("userUid", "==", auth.currentUser?.uid),
+					where("isActive", "==", true),
+			  ];
+		const accountQuery = query(personalAccountRef, ...constraints);
 		const personalAccounts = (await getDocs(accountQuery)).docs.map(
 			(snapshot) => ({ id: snapshot.id, ...snapshot.data() } as PersonalAccount)
 		);
@@ -196,6 +204,21 @@ const paymentInfoService: PaymentInfoServiceProvider = {
 			await updateDoc(groupAccRef, {
 				maintainers: arrayUnion(user.username),
 			});
+		}
+	},
+	deactivatePaymentAccount: async function (accountId: string) {
+		const accountRef = doc(firestore, "PaymentInfo", accountId);
+		await updateDoc(accountRef, {
+			isActive: false,
+		});
+	},
+	validatePersonalAccount: function (personalAccount: PersonalAccount) {
+		const result = PersonalAccountSchema.safeParse(personalAccount);
+
+		if (result.success === true) {
+			return true;
+		} else {
+			return result.error.formErrors.fieldErrors;
 		}
 	},
 };

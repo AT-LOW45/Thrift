@@ -65,7 +65,7 @@ const useMonthlyBudgetSummary = () => {
 		],
 	};
 
-	return { areBudgetsLoading, pieData };
+	return { areBudgetsLoading, pieData, chartData };
 };
 
 export default useMonthlyBudgetSummary;

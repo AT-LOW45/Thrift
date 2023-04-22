@@ -21,7 +21,7 @@ import {
 } from "@mui/material";
 import Grid2 from "@mui/material/Unstable_Grid2";
 import { Fragment } from "react";
-import { Tray } from "../../../components";
+import { InfoBar, Tray } from "../../../components";
 import { FirestoreTimestampObject } from "../../../service/thrift";
 import useCrowdfundRetrieval from "../hooks/useCrowdfundRetrieval";
 import CrowdfundCreationDialog from "./CrowdfundCreationDialog";
@@ -42,6 +42,11 @@ const CrowdfundCampaign = () => {
 		crowdfundCloseConfirmationOpen,
 		toggleDialog,
 		closeCrowdfund,
+		closedCrowdfundName, 
+		closingErrorInfoBarOpen,
+		setClosingErrorInfoBarOpen,
+		closingInfoBarOpen,
+		setClosingInfoBarOpen
 	} = useCrowdfundRetrieval();
 
 	return (
@@ -96,7 +101,7 @@ const CrowdfundCampaign = () => {
 			)}
 
 			<Stack mt={5} spacing={2}>
-				<Typography variant='regularSubHeading'>Available Crowdfunds</Typography>
+				<Typography variant='regularSubHeading'>Crowdfund List</Typography>
 				<List sx={{ backgroundColor: "white" }}>
 					{firestoreCollection.map((crowdfund) => (
 						<Fragment key={crowdfund.id}>
@@ -195,9 +200,11 @@ const CrowdfundCampaign = () => {
 							<Typography component='li' color='gray'>
 								People can no longer contribute to your crowdfund
 							</Typography>
-							<Typography component='li' color='gray'></Typography>
 							<Typography component='li' color='gray'>
-								Lorem ipsum dolor sit amet consectetur adipisicing elit.
+								The accumulated amount will be transferred to a separate account
+							</Typography>
+							<Typography component='li' color='gray'>
+								You will need to configure the payback period and amount
 							</Typography>
 						</Box>
 					</DialogContent>
@@ -207,6 +214,18 @@ const CrowdfundCampaign = () => {
 					</DialogActions>
 				</Dialog>
 			</Portal>
+			<InfoBar
+				infoBarOpen={closingInfoBarOpen}
+				setInfoBarOpen={setClosingErrorInfoBarOpen}
+				message={`You closed ${closedCrowdfundName}`}
+				type='info'
+			/>
+			<InfoBar
+				infoBarOpen={closingErrorInfoBarOpen}
+				setInfoBarOpen={setClosingErrorInfoBarOpen}
+				message='Unable to initiate crowdfund. Please try again later'
+				type='success'
+			/>
 		</Fragment>
 	);
 };

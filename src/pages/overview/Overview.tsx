@@ -44,6 +44,8 @@ const Overview = () => {
 		recentTransactionsData,
 		recentTransactionsOptions,
 		recentPosts,
+		TrendUpBadge,
+		TrendDownBadge,
 	} = useOverview();
 	const navigate = useNavigate();
 
@@ -68,36 +70,16 @@ const Overview = () => {
 							justifyContent='center'
 							alignItems='center'
 						>
-							<Typography
-								sx={
-									"budgetPlanId" in mostRecentRecord.record
-										? {
-												py: 1,
-												px: 2,
-												display: "flex",
-												alignItems: "center",
-												borderRadius: "7px",
-												backgroundColor: "rgb(242, 136, 136)",
-												color: "rgb(207, 0, 0)",
-										  }
-										: {
-												py: 1,
-												px: 2,
-												display: "flex",
-												alignItems: "center",
-												borderRadius: "7px",
-												backgroundColor: "rgb(180, 255, 176)",
-												color: "green",
-										  }
-								}
-							>
-								RM{mostRecentRecord.record.amount}
-								{"budgetPlanId" in mostRecentRecord.record ? (
-									<TrendingDownIcon />
-								) : (
-									<TrendingUpIcon />
-								)}
-							</Typography>
+							{"budgetPlanId" in mostRecentRecord.record ? (
+								<TrendDownBadge>
+									RM{mostRecentRecord.record.amount} <TrendingDownIcon />
+								</TrendDownBadge>
+							) : (
+								<TrendUpBadge>
+									RM{mostRecentRecord.record.amount} <TrendingUpIcon />
+								</TrendUpBadge>
+							)}
+
 							<Typography variant='regularLight'>
 								recorded on{" "}
 								{new Date(
@@ -134,20 +116,11 @@ const Overview = () => {
 							justifyContent='center'
 							alignItems='center'
 						>
-							<Typography
-								sx={{
-									py: 1,
-									px: 2,
-									display: "flex",
-									alignItems: "center",
-									borderRadius: "7px",
-									backgroundColor: "rgb(180, 255, 176)",
-									color: "green",
-								}}
-							>
-								{/* RM{currentMonthIncome.mostRecentIncome.amount} */}
+							<TrendUpBadge>
+								{" "}
+								RM{currentMonthIncome.mostRecentIncome.amount}
 								<TrendingUpIcon />
-							</Typography>
+							</TrendUpBadge>
 							<Typography variant='regularLight'>
 								recorded on{" "}
 								{new Date(
@@ -184,20 +157,11 @@ const Overview = () => {
 							justifyContent='center'
 							alignItems='center'
 						>
-							<Typography
-								sx={{
-									py: 1,
-									display: "flex",
-									borderRadius: "7px",
-									alignItems: "center",
-									px: 2,
-									backgroundColor: "rgb(242, 136, 136)",
-									color: "rgb(207, 0, 0)",
-								}}
-							>
+							<TrendDownBadge>
+								{" "}
 								RM{mostRecentBudget.transaction.amount}
 								<TrendingDownIcon />
-							</Typography>
+							</TrendDownBadge>
 							<Typography variant='regularLight'>
 								recorded on{" "}
 								{new Date(
@@ -217,7 +181,6 @@ const Overview = () => {
 			<Tray
 				colSpan={{ xs: 12 }}
 				title='Expense Trend'
-				actions={<Button variant='contained'>More</Button>}
 			>
 				{!areRecordsLoading ? (
 					<Line options={recentTransactionsOptions} data={recentTransactionsData} />
@@ -232,11 +195,17 @@ const Overview = () => {
 				) : (
 					<Stack spacing={3}>
 						<Typography>You have not recorded any transactions this month.</Typography>
-						<Button variant='contained'>Start Recording</Button>
+						<Button variant='contained' onClick={() => navigate("/transactions")}>
+							Start Recording
+						</Button>
 					</Stack>
 				)}
 			</Tray>
-			<Tray colSpan={{ xs: 12, lg: 5 }} title='Recent activities'>
+			<Tray
+				colSpan={{ xs: 12, lg: 5 }}
+				title='Recent activities'
+				actions={<Button onClick={() => navigate("/community")}>More</Button>}
+			>
 				<List sx={{ width: "100%", maxWidth: 360, bgcolor: "background.paper" }}>
 					{recentPosts.length === 0 ? (
 						<Typography variant='regularLight'>No posts yet</Typography>

@@ -6,6 +6,7 @@ import {
 	DialogContentText,
 	DialogTitle,
 	Divider,
+	IconButton,
 	Portal,
 	Stack,
 	Typography,
@@ -14,6 +15,7 @@ import { Fragment } from "react";
 import { FirestoreTimestampObject } from "../../../service/thrift";
 import { BudgetChip } from "../../budget";
 import { Income, Transaction } from "../transaction.schema";
+import CloseIcon from "@mui/icons-material/Close";
 
 type RecordDetailsDialogProps = {
 	open: boolean;
@@ -22,9 +24,8 @@ type RecordDetailsDialogProps = {
 };
 
 const RecordDetailsDialog = ({ open, toggleModal, record }: RecordDetailsDialogProps) => {
-	const isTransaction = (record: Transaction | Income): record is Transaction => {
-		return "category" in record;
-	};
+	const isTransaction = (record: Transaction | Income): record is Transaction =>
+		"category" in record;
 
 	const dateConverted = new Date(
 		(record.transactionDate as FirestoreTimestampObject).seconds * 1000
@@ -33,7 +34,12 @@ const RecordDetailsDialog = ({ open, toggleModal, record }: RecordDetailsDialogP
 	return (
 		<Portal>
 			<Dialog open={open} onClose={toggleModal} fullWidth={true} maxWidth='sm'>
-				<DialogTitle>Record Details</DialogTitle>
+				<Stack direction='row' justifyContent='space-between' alignItems='center' pr={2}>
+					<DialogTitle>Record Details</DialogTitle>
+					<IconButton onClick={toggleModal}>
+						<CloseIcon />
+					</IconButton>
+				</Stack>
 				<DialogContent dividers>
 					<Stack direction='column' spacing={2} sx={{ px: 2, py: 1 }}>
 						<DialogContentText sx={{ width: "100%" }}>
@@ -53,6 +59,7 @@ const RecordDetailsDialog = ({ open, toggleModal, record }: RecordDetailsDialogP
 											Category
 										</Typography>
 										<BudgetChip option={record.category} />
+										<Typography>{record.category}</Typography>
 									</Fragment>
 								) : (
 									<Fragment>

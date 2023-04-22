@@ -21,6 +21,9 @@ const useCrowdfundRetrieval = () => {
 		currency: number;
 		percentage: number;
 	}>({ currency: 0, percentage: 0 });
+	const [closingInfoBarOpen, setClosingInfoBarOpen] = useState(false)
+	const [closingErrorInfoBarOpen, setClosingErrorInfoBarOpen] = useState(false)
+	const [closedCrowdfundName, setClosedCrowdfundName] = useState("")
 	const [crowdfundCloseConfirmationOpen, setCrowdfundCloseConfirmationOpen] = useState(false);
 
 	useEffect(() => {
@@ -60,6 +63,9 @@ const useCrowdfundRetrieval = () => {
 
 	const closeCrowdfund = async (crowdfundId: string) => {
 		await communityService.closeCrowdfund(crowdfundId);
+		const closedCrowdfund = firestoreCollection.find(crowdfund => crowdfund.id === crowdfundId)
+		setClosedCrowdfundName(closedCrowdfund!.name)
+		setClosingInfoBarOpen(true)
 		toggleConfirmCloseDialog()
 	};
 
@@ -71,6 +77,11 @@ const useCrowdfundRetrieval = () => {
 		creationDialogOpen,
 		selectedCrowdfundCumulativeAmount,
 		crowdfundCloseConfirmationOpen,
+		closingErrorInfoBarOpen,
+		closedCrowdfundName,
+		closingInfoBarOpen,
+		setClosingInfoBarOpen,
+		setClosingErrorInfoBarOpen,
 		toggleCreationDialog,
 		convertDate,
 		toggleConfirmCloseDialog,

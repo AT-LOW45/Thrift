@@ -80,6 +80,7 @@ const useRecordChartSummary = (budgetPlanId?: string) => {
 
 	const recentTransactionsOptions = {
 		responsive: true,
+		
 		plugins: {
 			legend: {
 				position: "top" as const,
@@ -117,6 +118,7 @@ const useRecordChartSummary = (budgetPlanId?: string) => {
 				data: chartData.amount,
 				borderColor: "rgb(255, 99, 132)",
 				backgroundColor: "rgba(255, 99, 132, 0.5)",
+				lineTension: 0.5
 			},
 		],
 	};

@@ -28,7 +28,7 @@ const PostCreationDialog = ({ open, toggleModal }: PostCreationDialogProps) => {
 		setPost((post) => {
 			const updated = { ...post, [event.target.name]: event.target.value };
 			const result = communityService.validatePost(updated);
-			
+
 			if (result === true) {
 				setErrorMessages(undefined);
 				setIsValid(true);
@@ -44,8 +44,8 @@ const PostCreationDialog = ({ open, toggleModal }: PostCreationDialogProps) => {
 		console.log("added");
 		const result = await communityService.addPost(post, selectedFile);
 		if (typeof result === "string") {
-			setPost(PostSchemaDefaults.parse({}));
 			toggleModal();
+			setPost(PostSchemaDefaults.parse({}));
 		}
 	};
 
@@ -54,11 +54,20 @@ const PostCreationDialog = ({ open, toggleModal }: PostCreationDialogProps) => {
 			open={open}
 			toggleModal={toggleModal}
 			actions={[
-				<Button key={1} variant='contained' onClick={addPost} disabled={!isValid}>
+				<Button
+					key={2}
+					onClick={() => {
+						toggleModal();
+						setPost(PostSchemaDefaults.parse({}));
+					}}
+				>
+					Cancel
+				</Button>,
+				<Button key={1} onClick={addPost} disabled={!isValid}>
 					Add Post
 				</Button>,
 			]}
-			title="Post Creation"
+			title='Post Creation'
 		>
 			<Stack direction='column' spacing={3}>
 				<TextField

@@ -1,5 +1,5 @@
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import {ZodError} from "zod"
+import { ZodError } from "zod";
 import {
 	FormControl,
 	IconButton,
@@ -77,6 +77,7 @@ const ProfileConfiguration = () => {
 					name='username'
 					label='Username'
 					helperText={errors?.username ? errors.username : ""}
+					color={errors?.username ? "error" : "primary"}
 					sx={{ width: "50%" }}
 					onChange={handleInputChange}
 				/>
@@ -89,6 +90,7 @@ const ProfileConfiguration = () => {
 					label='Password'
 					helperText={errors?.password ? errors.password : ""}
 					type={showPassword ? "text" : "password"}
+					color={errors?.password ? "error" : "primary"}
 					InputProps={{
 						endAdornment: (
 							<InputAdornment position='end'>
@@ -105,7 +107,12 @@ const ProfileConfiguration = () => {
 				<TextField
 					value={formData.confirmPassword}
 					name='confirmPassword'
-					helperText={errors?.confirmPassword ? errors.confirmPassword : ""}
+					helperText={
+						formData.confirmPassword === formData.password
+							? ""
+							: "Passwords do not match"
+					}
+					color={formData.confirmPassword === formData.password ? "error" : "primary"}
 					onChange={handleInputChange}
 					sx={{ width: "50%" }}
 					variant='standard'

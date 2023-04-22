@@ -30,7 +30,7 @@ const GroupCreationDialog = ({ open, toggleModal, selectedAccount }: GroupCreati
 
 	const createGroup = async () => {
 		(formData as Group).owner = user?.uid!;
-		const { groupAccount, ...rest } = formData as Group;
+		const { groupAccount } = formData as Group;
 		const groupResult = await groupService.addDoc(formData as Group);
 
 		if (typeof groupResult === "string") {
