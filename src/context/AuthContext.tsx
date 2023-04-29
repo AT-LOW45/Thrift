@@ -1,3 +1,11 @@
+/**
+ * Programmer Name: Koh Choon Mun
+ * Program: AuthContext.tsx
+ * Description: A wrapper component that contains system authentication properties
+ * First written: 6/3/2023
+ * Edited on: 29/4/2023
+ */
+
 import {
 	createUserWithEmailAndPassword,
 	getAuth,

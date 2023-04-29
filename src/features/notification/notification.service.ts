@@ -13,7 +13,7 @@ import { Notification, NotificationSchema } from "./notification.schema";
 import { BudgetPlan } from "../budget";
 import { getAuth } from "firebase/auth";
 import { CrowdFund } from "../community/community.schema";
-import { GroupIncome } from "../transaction/transaction.schema";
+import { GroupIncome, GroupTransaction } from "../transaction/transaction.schema";
 import { Group } from "../group_planning/group.schema";
 import profileService from "../profile/profile.service";
 import groupService from "../group_planning/group.service";
@@ -35,6 +35,10 @@ type NotificationServiceProvider = {
 		group: Group
 	): Promise<string | boolean>;
 	createMemberJoinTemplate(group: Group, newMembers: string[]): Promise<string | boolean>;
+	createGroupTransactionUpdateTemplate(
+		groupTransaction: GroupTransaction,
+		decision: boolean
+	): Promise<string | boolean>;
 	markSelectedAsRead(notificationId: string): Promise<void>;
 	markAllAsRead(): Promise<void>;
 };
@@ -94,6 +98,25 @@ const notificationService: NotificationServiceProvider = {
 			title: "New members joined the group",
 			message: `${newMembers.join(", ")} joined ${group.name}. Let's start saving together!`,
 			sendTo: groupMembers.map((member) => member.userUid),
+			type: "group alert",
+		});
+	},
+	createGroupTransactionUpdateTemplate: async function (
+		groupTransaction: GroupTransaction,
+		decision: boolean
+	) {
+		const updateMessage =
+			decision === true
+				? `Your pending group transaction with ID ${groupTransaction.id} was approved by the group owner`
+				: `Your pending group transaction with ID ${groupTransaction.id} was rejected by the group owner`;
+
+		return await this.createNotification({
+			message: updateMessage,
+			title:
+				decision === true
+					? "Pending group transaction approved"
+					: "Pending group transaction rejected",
+			sendTo: [groupTransaction.madeBy],
 			type: "group alert",
 		});
 	},

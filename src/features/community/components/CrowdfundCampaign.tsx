@@ -42,11 +42,11 @@ const CrowdfundCampaign = () => {
 		crowdfundCloseConfirmationOpen,
 		toggleDialog,
 		closeCrowdfund,
-		closedCrowdfundName, 
+		closedCrowdfundName,
 		closingErrorInfoBarOpen,
 		setClosingErrorInfoBarOpen,
 		closingInfoBarOpen,
-		setClosingInfoBarOpen
+		setClosingInfoBarOpen,
 	} = useCrowdfundRetrieval();
 
 	return (
@@ -103,78 +103,90 @@ const CrowdfundCampaign = () => {
 			<Stack mt={5} spacing={2}>
 				<Typography variant='regularSubHeading'>Crowdfund List</Typography>
 				<List sx={{ backgroundColor: "white" }}>
-					{firestoreCollection.map((crowdfund) => (
-						<Fragment key={crowdfund.id}>
-							<ListItem disablePadding>
-								<ListItemButton
-									onClick={() => findSelectedCrowdfund(crowdfund.id!)}
-								>
-									<Stack width='100%' spacing={1}>
-										<Stack
-											direction='row'
-											justifyContent='space-between'
-											alignItems='center'
-										>
-											<Stack direction='row' spacing={2}>
-												<Typography fontSize='1.3rem'>
-													{crowdfund.name}
+					{firestoreCollection.length == 0 ? (
+						<Typography variant='regularLight' textAlign='center' component='p' p={3}>
+							No crowdfunds yet
+						</Typography>
+					) : (
+						firestoreCollection.map((crowdfund) => (
+							<Fragment key={crowdfund.id}>
+								<ListItem disablePadding>
+									<ListItemButton
+										onClick={() => findSelectedCrowdfund(crowdfund.id!)}
+									>
+										<Stack width='100%' spacing={1}>
+											<Stack
+												direction='row'
+												justifyContent='space-between'
+												alignItems='center'
+											>
+												<Stack direction='row' spacing={2}>
+													<Typography fontSize='1.3rem'>
+														{crowdfund.name}
+													</Typography>
+													<Box
+														display='grid'
+														sx={{
+															placeContent: "center",
+															backgroundColor: crowdfund.isActive
+																? "green"
+																: "red",
+															color: "white",
+															px: 2,
+															paddingTop: "1px",
+															paddingBottom: "1px",
+															borderRadius: "5px",
+														}}
+													>
+														{crowdfund.isActive ? "Active" : "Closed"}
+													</Box>
+												</Stack>
+												<Typography variant='numberParagraph'>
+													Target: RM {crowdfund.targetAmount}
 												</Typography>
-												<Box
-													display='grid'
-													sx={{
-														placeContent: "center",
-														backgroundColor: crowdfund.isActive
-															? "green"
-															: "red",
-														color: "white",
-														px: 2,
-														paddingTop: "1px",
-														paddingBottom: "1px",
-														borderRadius: "5px",
-													}}
-												>
-													{crowdfund.isActive ? "Active" : "Closed"}
-												</Box>
+												{crowdfund.contributors.length === 0 ? (
+													<Typography variant='regularLight'>
+														No contributors yet
+													</Typography>
+												) : (
+													<AvatarGroup max={3}>
+														{crowdfund.contributors.map((cont) => (
+															<Avatar key={cont.user}>
+																{cont.user.charAt(0).toUpperCase()}
+															</Avatar>
+														))}
+													</AvatarGroup>
+												)}
 											</Stack>
-											<Typography variant='numberParagraph'>
-												Target: RM {crowdfund.targetAmount}
-											</Typography>
-											{crowdfund.contributors.length === 0 ? (
-												<Typography variant='regularLight'>
-													No contributors yet
-												</Typography>
-											) : (
-												<AvatarGroup max={3}>
-													{crowdfund.contributors.map((cont) => (
-														<Avatar key={cont.user}>
-															{cont.user.charAt(0).toUpperCase()}
-														</Avatar>
-													))}
-												</AvatarGroup>
-											)}
-										</Stack>
 
-										<Stack direction='row' spacing={2} alignItems='center'>
-											<Stack direction='row' alignItems='center' spacing={1}>
-												<Avatar>
-													{crowdfund.initiator.charAt(0).toUpperCase()}
-												</Avatar>
-												<Typography variant='regularLight'>
-													{crowdfund.initiator}
-												</Typography>
+											<Stack direction='row' spacing={2} alignItems='center'>
+												<Stack
+													direction='row'
+													alignItems='center'
+													spacing={1}
+												>
+													<Avatar>
+														{crowdfund.initiator
+															.charAt(0)
+															.toUpperCase()}
+													</Avatar>
+													<Typography variant='regularLight'>
+														{crowdfund.initiator}
+													</Typography>
+												</Stack>
+												<ListItemText
+													primary={`ending on ${convertDate(
+														crowdfund.endDate as FirestoreTimestampObject
+													)}`}
+												/>
 											</Stack>
-											<ListItemText
-												primary={`ending on ${convertDate(
-													crowdfund.endDate as FirestoreTimestampObject
-												)}`}
-											/>
 										</Stack>
-									</Stack>
-								</ListItemButton>
-							</ListItem>
-							<Divider />
-						</Fragment>
-					))}
+									</ListItemButton>
+								</ListItem>
+								<Divider />
+							</Fragment>
+						))
+					)}
 				</List>
 			</Stack>
 			<CrowdfundDetailsDialog

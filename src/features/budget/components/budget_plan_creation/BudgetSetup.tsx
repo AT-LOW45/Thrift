@@ -31,7 +31,6 @@ import { ZodError } from "zod";
 type BudgetSetupProps = {
 	enabled: boolean;
 	setEnabled: Dispatch<SetStateAction<boolean>>;
-
 };
 
 const BudgetSetup = ({

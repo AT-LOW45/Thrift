@@ -19,9 +19,9 @@ const useCrowdfundDetails = (toggleModal: () => void, crowdfund: CrowdFund) => {
 	});
 	const [balance, setBalance] = useState<number>();
 	const { user } = useContext(AuthContext);
-	const [errorMessage, setErrorMessage] = useState<string>()
-	const [infoInfoBarOpen, setInfoInfoBarOpen] = useState(false)
-	const [errorInfoBarOpen, setErrorInfoBarOpen] = useState(false)
+	const [errorMessage, setErrorMessage] = useState<string>();
+	const [infoInfoBarOpen, setInfoInfoBarOpen] = useState(false);
+	const [errorInfoBarOpen, setErrorInfoBarOpen] = useState(false);
 
 	useEffect(() => {
 		const getPaymentAccounts = async () => {
@@ -46,33 +46,38 @@ const useCrowdfundDetails = (toggleModal: () => void, crowdfund: CrowdFund) => {
 	};
 
 	const getSortedContributors = (contributors: CrowdFund["contributors"]) => {
-		const sorted = contributors.slice().sort((prev, next) => next.amount - prev.amount)
-		const sortedArray = [...sorted]
-		return sortedArray
-	}
+		const sorted = contributors.slice().sort((prev, next) => next.amount - prev.amount);
+		const sortedArray = [...sorted];
+		return sortedArray;
+	};
 
 	const donate = async () => {
 		const selectedAccount = accounts.find((acc) => acc.name === donation.accountName);
 		if (
 			donation.amount > selectedAccount?.balance! ||
-			donation.amount === 0 ||
-			donation.accountName === ""
+			donation.amount <= 0 ||
+			donation.accountName === "" ||
+			isNaN(donation.amount)
 		) {
-			if(donation.accountName === "") {
-				setErrorMessage("You have not selected an account")
-				return
+			if (isNaN(donation.amount)) {
+				setErrorMessage("Please provide an amount");
+				return;
 			}
 
-			if(donation.amount > selectedAccount?.balance!) {
-				setErrorMessage("You do not have enough to contribute")
-				return
+			if (donation.accountName === "") {
+				setErrorMessage("You have not selected an account");
+				return;
 			}
 
-			if(donation.amount === 0 || donation.amount <= 0) {
-				setErrorMessage("You cannot donate RM0 or a negative amount")
-				return 
+			if (donation.amount > selectedAccount?.balance!) {
+				setErrorMessage("You do not have enough to contribute");
+				return;
 			}
 
+			if (donation.amount <= 0) {
+				setErrorMessage("You cannot donate RM0 or a negative amount");
+				return;
+			}
 		} else {
 			const contributionResult = await communityService.contribute(
 				user?.uid!,
@@ -81,9 +86,9 @@ const useCrowdfundDetails = (toggleModal: () => void, crowdfund: CrowdFund) => {
 			);
 			if (typeof contributionResult === "string") {
 				toggleModal();
-				setInfoInfoBarOpen(true)
+				setInfoInfoBarOpen(true);
 			} else {
-				setErrorInfoBarOpen(true)
+				setErrorInfoBarOpen(true);
 			}
 		}
 	};

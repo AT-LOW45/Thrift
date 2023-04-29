@@ -6,7 +6,7 @@ interface ProfileServiceProvider {
 	addProfile(profile: Profile): Promise<string | boolean>;
 	findProfile(userUid: string): Promise<Profile>;
 	readAll(): Promise<Profile[]>;
-	findProfileByUsername(username: string): Promise<Profile>
+	findProfileByUsername(username: string): Promise<Profile>;
 }
 
 const firestore = getFirestore(app);
@@ -40,7 +40,7 @@ const profileService: ProfileServiceProvider = {
 		const profileQuery = query(profileRef, where("username", "==", username))
 		const profile = await getDocs(profileQuery)
 		return { ...profile.docs[0].data(), id: profile.docs[0].id } as Profile;
-	}
+	},
 };
 
 export default profileService;

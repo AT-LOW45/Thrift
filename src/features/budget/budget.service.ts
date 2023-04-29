@@ -121,7 +121,7 @@ const budgetService: BudgetServiceProvider = {
 
 	validateLimit: function (plan: BudgetPlan) {
 		return (
-			plan.categories[0].spendingLimit + plan.plannedPayments![0].amount < plan.spendingLimit
+			plan.categories[0].spendingLimit + plan.plannedPayments![0].amount <= plan.spendingLimit
 		);
 	},
 	getRemainingOverallAmount: async function (id: string) {

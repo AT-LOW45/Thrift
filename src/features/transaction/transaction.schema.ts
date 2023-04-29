@@ -2,7 +2,7 @@ import { z as zod } from "zod";
 import { FirestoreTimestampObjectSchema } from "../../service/thrift";
 import { ChipOptionsSchema } from "../budget/components/BudgetChip";
 
-const labelValues = ["Family", "Personal", "Business", "Daily Necessities"];
+const labelValues = ["Family", "Personal", "Business", "Daily Necessities", "Payment", "Interest"];
 export const labels = new Set(labelValues);
 const IncomeTypeSchema = zod.union([zod.literal("job"), zod.literal("transfer")], {
 	invalid_type_error: "You need to specify a source for this income",

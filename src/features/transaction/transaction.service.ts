@@ -265,6 +265,11 @@ const transactionService: TransactionServiceProvider = {
 				  )
 				: true;
 
+		await notificationService.createGroupTransactionUpdateTemplate(
+			selectedTransaction,
+			decision
+		);
+
 		return transactionMade;
 	},
 	getChartSummary: async function (...queryConstraints: QueryConstraint[]) {

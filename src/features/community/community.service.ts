@@ -61,8 +61,6 @@ const communityService: CommunityServiceProvider = {
 	},
 	addPost: async function (post: Post, selectedImage?: File) {
 		const result = PostSchema.safeParse(post);
-		console.log(post);
-		console.log("in process");
 
 		if (result.success === true) {
 			const postRef = collection(firestore, "Post");

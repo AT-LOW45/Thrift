@@ -66,7 +66,7 @@ const BudgetCategoryCreationModal = ({
 					<Typography
 						variant='regularSubHeading'
 						textAlign='center'
-						color={amountLeft <= 0 ? "red" : "black"}
+						color={amountLeft < 0 ? "red" : "black"}
 					>
 						Spendable Amount: RM {amountLeft}
 					</Typography>
@@ -137,7 +137,7 @@ const BudgetCategoryCreationModal = ({
 						Add
 					</Button>
 					{uniqueCategoryError && (
-						<Typography textAlign='center' variant='regularLight'>
+						<Typography textAlign='center' variant='regularLight' pt={2}>
 							{uniqueCategoryError}
 						</Typography>
 					)}

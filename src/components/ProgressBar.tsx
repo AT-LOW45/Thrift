@@ -24,6 +24,7 @@ const ProgressBar = ({ fillType, fillPercentage }: ProgressBarProps) => {
 		transition: "width 0.5s cubic-bezier(.37,.59,.22,.92)",
 		borderRadius: "inherit",
 		width: 0,
+		maxWidth: "100%"
 	};
 
 	const getFillType = () => {

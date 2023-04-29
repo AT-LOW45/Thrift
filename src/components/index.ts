@@ -3,5 +3,8 @@ export { default as PlainLayout } from "./layout/PlainLayout";
 export { default as Tray } from "./Tray";
 export { default as ProgressBar } from "./ProgressBar";
 export { default as TabPanel } from "./TabPanel";
-export {default as InfoBar} from "./InfoBar"
-export {default as editStateMachine} from "./form/editable/editableStateMachine"
+export { default as InfoBar } from "./InfoBar";
+export { default as FormDialog } from "./form/FormDialog";
+export type { FormDialogProps } from "./form/FormDialog";
+export { default as editStateMachine } from "./form/editable/editableStateMachine";
+export { default as EditableField } from "./form/editable/EditableField";

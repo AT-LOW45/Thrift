@@ -41,7 +41,6 @@ const PostCreationDialog = ({ open, toggleModal }: PostCreationDialogProps) => {
 	};
 
 	const addPost = async () => {
-		console.log("added");
 		const result = await communityService.addPost(post, selectedFile);
 		if (typeof result === "string") {
 			toggleModal();

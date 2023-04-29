@@ -2,23 +2,19 @@
  * Programmer Name: Koh Choon Mun
  * Program: useRealtimeUpdate.ts
  * Description: Streams updated data from the database to the client application in real-time
- * First written:
- * Edited on:
+ * First written: 6/2/2023
+ * Edited on: 29/4/2023
  */
 
 import {
-	collection,
 	DocumentData,
-	getFirestore,
 	Query,
 	QueryConstraint,
-	WhereFilterOp,
-	where,
-	query,
-	onSnapshot,
+	collection,
 	doc,
-	orderBy,
-	QueryOrderByConstraint,
+	getFirestore,
+	onSnapshot,
+	query,
 } from "firebase/firestore";
 import { useCallback, useEffect, useState } from "react";
 import app from "../firebaseConfig";
@@ -30,18 +26,11 @@ type DataType = {
 	data: { collection: string } | DocType;
 };
 
-// defines the the clause type needed for conditional data retrieval
-type FirestoreClause = {
-	field: string;
-	operator: WhereFilterOp;
-	value: unknown;
-};
-
 const firestore = getFirestore(app);
 
 const useRealtimeUpdate = <T extends { id?: string }>(
 	{ data }: DataType, // the type of data to be retrieved (collection or document)
-	...queryConstraints: QueryConstraint[]
+	...queryConstraints: QueryConstraint[] // initial filtering conditions
 ) => {
 	const [firestoreCollection, setFirestoreCollection] = useState<T[]>([]); // holds the collection
 	const [firestoreDoc, setFirestoreDoc] = useState<T>({} as T); // holds the document

@@ -1,4 +1,10 @@
-
+/**
+ * Programmer Name: Koh Choon Mun
+ * Program: EditableContext.tsx
+ * Description: A wrapper component enfolding all components that use the editable feature
+ * First written: 22/2/2023
+ * Edited on: 29/4/2023
+ */
 
 import { SelectChangeEvent } from "@mui/material";
 import React, { createContext, PropsWithChildren, ReactNode, useContext, useMemo } from "react";

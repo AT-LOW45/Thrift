@@ -87,7 +87,7 @@ const GroupRecordCreationDialog = ({
 						</Typography>
 						<Typography>
 							You are allowed to spend RM {group.transactionLimit}. A transaction
-							exceeding this amount will require all members' approval
+							exceeding this amount will require the group owner's approval
 						</Typography>
 					</Box>
 					<Stack direction='row' spacing={2}>

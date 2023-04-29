@@ -1,5 +1,13 @@
 import { TableCell, TableRow, styled, tableCellClasses } from "@mui/material";
-import { collection, getFirestore, onSnapshot, query, where } from "firebase/firestore";
+import {
+	collection,
+	getFirestore,
+	limit,
+	onSnapshot,
+	orderBy,
+	query,
+	where,
+} from "firebase/firestore";
 import { useEffect, useState } from "react";
 import app from "../../../firebaseConfig";
 import { FirestoreTimestampObject } from "../../../service/thrift";
@@ -89,7 +97,7 @@ const useGroupDetailRetrieval = (group: Group) => {
 				stream.memberStream();
 			});
 		};
-	}, []);
+	}, [pendingTransactions]);
 
 	const StyledTableCell = styled(TableCell)(({ theme }) => ({
 		[`&.${tableCellClasses.head}`]: {

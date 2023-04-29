@@ -34,6 +34,4 @@ const FormDialog = ({ open, toggleModal, children, actions, title }: FormDialogP
 	);
 };
 
-
-
 export default FormDialog;

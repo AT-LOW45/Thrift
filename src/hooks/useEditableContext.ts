@@ -1,3 +1,11 @@
+/**
+ * Programmer Name: Koh Choon Mun
+ * Program: useEditableContext.ts
+ * Description: A hook that exposes the properties of the editable feature
+ * First written: 9/2/2023
+ * Edited on: 29/4/2023
+ */
+
 import { SelectChangeEvent } from "@mui/material";
 import { useInterpret } from "@xstate/react";
 import { useEffect, useRef, useState } from "react";
@@ -10,7 +18,7 @@ const useEditableContext = <T extends object>(initialValues: T) => {
 	const { curry } = useFunctional();
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [formData, setFormData] = useState<T>(initialValues);
-	const [placeholderFormData, setPlaceholderFromData] = useState<T>(initialValues)
+	const [placeholderFormData, setPlaceholderFromData] = useState<T>(initialValues);
 	const [renderCount, setRenderCount] = useState(0);
 	const [conditions, setConditions] = useState<Conditions>([]);
 	const [isValid, setIsValid] = useState(true);
@@ -87,7 +95,7 @@ const useEditableContext = <T extends object>(initialValues: T) => {
 	};
 
 	const handleModeSwitch = (event: React.MouseEvent, activate: boolean) => {
-		activate && setPlaceholderFromData(formData)
+		activate && setPlaceholderFromData(formData);
 		const parentContainer = event.currentTarget.closest(".container");
 		const children = parentContainer?.closest(".editable-field")?.children!;
 		let siblingEl;
@@ -113,7 +121,7 @@ const useEditableContext = <T extends object>(initialValues: T) => {
 		setIsSubmitting,
 		isSubmitting,
 		isValid,
-		placeholderFormData
+		placeholderFormData,
 	};
 };
 

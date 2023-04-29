@@ -2,8 +2,8 @@
  * Programmer Name: Koh Choon Mun
  * Program: useInputGroup.ts
  * Description: Manages a group of input fields
- * First written:
- * Edited on:
+ * First written: 12/2/2023
+ * Edited on: 29/4/2023
  */
 
 import { useState } from "react";

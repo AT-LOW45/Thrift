@@ -79,6 +79,14 @@ const useCreateRecord = (toggleModal: () => void) => {
 	}, []);
 
 	useEffect(() => {
+		const change = () => {
+			const result = validateRecord(record);
+			setIsValid(result);
+		};
+		change();
+	}, [(record as Transaction).category, record.accountId]);
+
+	useEffect(() => {
 		const getAmount = async () => {
 			const plan = budgetPlans.find(
 				(plan) => plan.name === (record as Transaction).budgetPlanName

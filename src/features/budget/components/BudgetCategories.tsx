@@ -10,15 +10,13 @@ import BudgetCategoryCreationModal from "./BudgetCategoryCreationModal";
 import PlannedPaymentCreationModal from "./PlannedPaymentCreationModal";
 
 const BudgetCategories = () => {
-	const { handleInputChange, setFormContext, formData } = useEditable<BudgetPlan>();
+	const { handleInputChange, formData } = useEditable<BudgetPlan>();
 	const [availableBudgets, setAvailableBudgets] = useState<ChipOptions[]>([]);
 	const [categoryCreationModalOpen, setCategoryCreationModalOpen] = useState(false);
 	const [plannedPaymentCreationModalOpen, setPlannedPaymentCreationModalOpen] = useState(false);
 
 	const toggleCategoryModal = () => setCategoryCreationModalOpen((open) => !open);
 	const togglePlannedPaymentModal = () => setPlannedPaymentCreationModalOpen((open) => !open);
-
-	setFormContext((cat) => {});
 
 	useEffect(() => {
 		const available = budgetTypes.filter(

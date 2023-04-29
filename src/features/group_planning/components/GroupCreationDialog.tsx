@@ -8,6 +8,7 @@ import paymentInfoService from "../../payment_info/paymentInfo.service";
 import profileService from "../../profile/profile.service";
 import { Group } from "../group.schema";
 import groupService from "../group.service";
+import { useNavigate } from "react-router-dom";
 
 type GroupCreationDialogProps = Pick<FormDialogProps, "open" | "toggleModal"> & {
 	selectedAccount: PersonalAccount;
@@ -25,6 +26,7 @@ const GroupCreationDialog = ({ open, toggleModal, selectedAccount }: GroupCreati
 		formData,
 	} = useMultiStepContainer();
 	const { user } = useContext(AuthContext);
+	const navigate = useNavigate()
 
 	const steps = ["Group Details", "Group Payment Details"];
 
@@ -48,10 +50,11 @@ const GroupCreationDialog = ({ open, toggleModal, selectedAccount }: GroupCreati
 				if (transactionResult === true) {
 					const currentUser = await profileService.findProfile(user?.uid!);
 					await groupService.enlistMembers(new Set([currentUser]), groupResult);
-					const groupAcc = await paymentInfoService.getGroupAccount(groupAccResult);
+					const groupAcc = await paymentInfoService.getGroupAccount(groupResult);
 					await paymentInfoService.addGroupMaintainer(groupAcc, currentUser);
 
 					toggleModal();
+					navigate("/group-planning")
 				} else {
 					console.log("unable to deduct from personal account");
 				}

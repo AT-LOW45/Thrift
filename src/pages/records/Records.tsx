@@ -62,7 +62,9 @@ const Records = () => {
 				sx={{ height: "450px", width: "100%", mt: 5 }}
 				px={3}
 			>
-				<Typography variant='regularSubHeading'>Income</Typography>
+				<Typography variant='regularSubHeading'>
+					{isGroupView ? "Group Income" : "Income"}
+				</Typography>
 
 				<CustomDataGrid
 					sx={{ border: "1px solid gray" }}
@@ -82,7 +84,9 @@ const Records = () => {
 				sx={{ height: "450px", width: "100%", mt: 6, mb: 5 }}
 				px={3}
 			>
-				<Typography variant='regularSubHeading'>Transactions</Typography>
+				<Typography variant='regularSubHeading'>
+					{isGroupView ? "Group Transactions" : "Transactions"}
+				</Typography>
 
 				<CustomDataGrid
 					sx={{ border: "1px solid gray" }}

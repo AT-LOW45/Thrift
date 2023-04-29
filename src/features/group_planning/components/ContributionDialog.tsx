@@ -111,7 +111,7 @@ const ContributionDialog = ({ open, toggleModal, group }: ContributionDialogProp
 						value={groupIncome.description}
 						sx={{ width: "70%" }}
 						name='description'
-						label='Description'
+						label='Description (optional)'
 					/>
 					<Stack direction='row' spacing={2} alignItems='center'>
 						<Autocomplete
@@ -127,7 +127,7 @@ const ContributionDialog = ({ open, toggleModal, group }: ContributionDialogProp
 								<Fragment>
 									<TextField
 										{...params}
-										label='Type label'
+										label='Type label (optional)'
 										onChange={testAutoFree}
 										InputProps={{
 											...params.InputProps,

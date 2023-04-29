@@ -25,7 +25,7 @@ const useGroupContribution = (group: Group, toggleModal: () => void) => {
 	const [selectedAccount, setSelectedAccount] = useState<PersonalAccount>();
 	const [successInfoBarOpen, setSuccessInfoBarOpen] = useState(false);
 	const [errorInfoBarOpen, setErrorInfoBarOpen] = useState(false);
-	const [contributionAmount, setContributionAmount] = useState(0)
+	const [contributionAmount, setContributionAmount] = useState(0);
 	const [errorMessages, setErrorMessages] =
 		useState<ZodError<GroupIncome>["formErrors"]["fieldErrors"]>();
 
@@ -36,6 +36,21 @@ const useGroupContribution = (group: Group, toggleModal: () => void) => {
 		};
 		getPersonalAccounts();
 	}, []);
+
+	useEffect(() => {
+		const check = () => {
+			if (selectedAccount) {
+				const hasEnough = selectedAccount.balance >= groupIncome.amount;
+				const isRecordValid = transactionService.validateGroupRecordDetails(groupIncome);
+				if (isRecordValid === true) {
+					setIsValid(hasEnough);
+				} else {
+					setIsValid(false);
+				}
+			}
+		};
+		check();
+	}, [selectedAccount]);
 
 	const testAuto = (event: SyntheticEvent<Element, Event>, value: string) => {
 		setLabel(value);
@@ -130,7 +145,7 @@ const useGroupContribution = (group: Group, toggleModal: () => void) => {
 
 				await paymentInfoService.addGroupMaintainer(foundGroupAcc, foundProfile);
 				toggleModal();
-				setContributionAmount(groupIncome.amount)
+				setContributionAmount(groupIncome.amount);
 				setSuccessInfoBarOpen(true);
 				setGroupIncome(GroupIncomeSchemaDefaults.parse({}));
 			} else {
